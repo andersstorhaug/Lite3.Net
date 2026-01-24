@@ -1045,6 +1045,27 @@ public static unsafe partial class Lite3Core
     }
 
     /// <summary>
+    ///     Find array value by index and return type.
+    /// </summary>
+    /// <param name="buffer">The message buffer.</param>
+    /// <param name="offset">The start offset; 0 for root.</param>
+    /// <param name="index">The array index.</param>
+    /// <returns>The value type on success; otherwise <see cref="ValueKind.Invalid" />.</returns>
+    /// <remarks><em>Ported from C <c>lite3_ctx_arr_get_type</c>.</em></remarks>
+    [Lite3Api(IsTryPattern = false)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueKind ArrayGetValueKind(ReadOnlySpan<byte> buffer, int offset, uint index)
+    {
+        if (VerifyArrayGet(buffer, offset) < 0)
+            return ValueKind.Invalid;
+
+        if (GetByIndex(buffer, offset, index, out var value) < 0)
+            return ValueKind.Invalid;
+        
+        return value.Type;
+    }
+
+    /// <summary>
     ///     Find value by key and write back type size
     /// </summary>
     /// <param name="buffer">The message buffer.</param>
