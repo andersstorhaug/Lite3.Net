@@ -303,14 +303,12 @@ public static class Lite3JsonDecoder
                 if ((status = Lite3Core.InitializeObject(buffer, out position)) < 0)
                     return status;
 
-                frames.Push(Frame.ForObject(offset: 0));
-                return 0;
+                return frames.Push(Frame.ForObject(offset: 0));
             case JsonTokenType.StartArray:
                 if ((status = Lite3Core.InitializeArray(buffer, out position)) < 0)
                     return status;
                 
-                frames.Push(Frame.ForArray(offset: 0));
-                return 0;
+                return frames.Push(Frame.ForArray(offset: 0));
             default:
                 return Lite3Core.Status.ExpectedJsonArrayOrObject;
         }
@@ -341,8 +339,7 @@ public static class Lite3JsonDecoder
             if (reader.TokenType != JsonTokenType.PropertyName)
                 return Lite3Core.Status.ExpectedJsonProperty;
 
-            frames.Push(Frame.ForObjectSwitch(offset, GetKeyRef(arrayPool, ref reader)));
-            return 0;
+            return frames.Push(Frame.ForObjectSwitch(offset, GetKeyRef(arrayPool, ref reader)));
         }
 
         return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
@@ -400,7 +397,7 @@ public static class Lite3JsonDecoder
                 if ((status = Lite3Core.SetObject(buffer, ref position, offset, key, keyData, out var objectOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
-                    frames.Push(Frame.ForObject(objectOffset));
+                    return frames.Push(Frame.ForObject(objectOffset));
                 }
 
                 return status;
@@ -410,7 +407,7 @@ public static class Lite3JsonDecoder
                 if ((status = Lite3Core.SetArray(buffer, ref position, offset, key, keyData, out var arrayOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
-                    frames.Push(Frame.ForArray(arrayOffset));
+                    return frames.Push(Frame.ForArray(arrayOffset));
                 }
 
                 return status;
@@ -450,8 +447,7 @@ public static class Lite3JsonDecoder
                 return 0;
             }
 
-            frames.Push(Frame.ForArraySwitch(offset));
-            return 0;
+            return frames.Push(Frame.ForArraySwitch(offset));
         }
         
         return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
@@ -502,7 +498,7 @@ public static class Lite3JsonDecoder
                 if ((status = Lite3Core.ArrayAppendObject(buffer, ref position, offset, out var objectOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
-                    frames.Push(Frame.ForObject(objectOffset));
+                    return frames.Push(Frame.ForObject(objectOffset));
                 }
 
                 return status;
@@ -512,7 +508,7 @@ public static class Lite3JsonDecoder
                 if ((status = Lite3Core.ArrayAppendArray(buffer, ref position, offset, out var arrayOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
-                    frames.Push(Frame.ForArray(arrayOffset));
+                    return frames.Push(Frame.ForArray(arrayOffset));
                 }
 
                 return status;
