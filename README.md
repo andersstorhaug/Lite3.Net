@@ -1,0 +1,67 @@
+# TRON (Lite^3) A JSON-Compatible Zero-Copy Serialization Format
+
+This is a C# port of [TRON](https://github.com/fastserial/lite3) (formerly Lite^3).
+
+## Current Status
+
+This port has feature parity with the reference C implementation as of December 2025.  
+To my knowledge, this has not been used in production.
+
+## Feature Parity
+
+This port includes two APIs, which correspond closely to the C impementation:
+
+- _Buffer API_: for working directly against fixed `Span<byte>` buffers.
+- _Context API_: for working against a resizable buffer, which is internally managed by `ArrayPool<byte>`.
+- `Try` and non-`Try` overloads for exceptionless use if desired.
+
+These APIs are supported by a Source Generator against the core implementation, which closely matches the reference C implementation.
+
+Additionally, feature-parity is provided in general, with additional features specific to .NET.
+
+- JSON decoding and encoding 
+  - Uses `System.Text.Json`'s `Utf8JsonReader` and `Utf8JsonWriter` internally.
+  - Asynchronous decode/encode using `System.IO.Pipelines`'s `PipeReader` and `PipeWriter`, respectively.
+  - Synchronous decode/encode using `Span<byte>` and `System.Buffers.IBufferWriter<byte>`, respectively.
+- Enumeration by `foreach` against a `struct` enumerator.
+
+## Code Example
+
+The following example using the Buffer API outputs `Max Retries: 3`.
+
+```csharp
+var buffer = new byte[1024];
+
+var position = Tron.InitializeObject(buffer);
+Tron.SetString(buffer, ref position, 0, "app_name"u8, "demo_app"u8);
+Tron.SetLong(buffer, ref position, 0, "max_retries"u8, 3);
+Tron.SetBool(buffer, ref position, 0, "debug_mode"u8, false);
+
+var maxRetries = Tron.GetLong(buffer, 0, "max_retries"u8);
+
+Console.WriteLine($"Max Retries: {maxRetries}");
+```
+
+The equivalent Context API code is below.
+
+```csharp
+var context = TronContext.Create();
+
+using var scope = context.BeginScope();
+
+context
+    .SetString(0, "app_name"u8, "demo_app"u8)
+    .SetLong(0, "max_retries"u8, 3)
+    .SetBool(0, "debug_mode"u8, false);
+
+var maxRetries = context.GetLong(0, "max_retries"u8);
+
+Console.WriteLine($"Max Retries: {maxRetries}");
+```
+
+See [`ContextApiExamples.cs`](TronDotNet.Tests/ContextApiExamples.cs) and [`BufferApiExamples.cs`](TronDotNet.Tests/BufferApiExamples.cs) for more examples.
+
+## Attribution
+
+This project is a C# port of the original TRON (Lite³) C implementation by Elias de Jong.
+All credit for the original design belongs to the original authors.
