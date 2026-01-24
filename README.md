@@ -1,6 +1,6 @@
-# TRON (Lite^3) A JSON-Compatible Zero-Copy Serialization Format
+# TRON (Lite³) A JSON-Compatible Zero-Copy Serialization Format
 
-This is a C# port of [TRON](https://github.com/fastserial/lite3) (formerly Lite^3).
+This is a C# port of [TRON](https://github.com/fastserial/lite3) (formerly Lite³).
 
 ## Current Status
 
