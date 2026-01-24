@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace TronDotNet;
+namespace Lite3;
 
-public static partial class Tron
+public static partial class Lite3
 {
     /// <summary>
     ///     <para>Enumerate entries for objects or arrays.</para>
@@ -23,43 +23,43 @@ public static partial class Tron
     ///     Read-only operations are thread-safe. Mixing reads and writes however is not thread-safe.
     /// </remarks>
     /// <returns>An enumerable struct.</returns>
-    public static TronEnumerable Enumerate(ReadOnlySpan<byte> buffer, int offset, bool withKey = true, bool withOffset = true)
+    public static Lite3Enumerable Enumerate(ReadOnlySpan<byte> buffer, int offset, bool withKey = true, bool withOffset = true)
     {
-        return new TronEnumerable(buffer, offset, withKey, withOffset);
+        return new Lite3Enumerable(buffer, offset, withKey, withOffset);
     }
 
-    extension(Lite3.StringEntry value)
+    extension(Lite3Core.StringEntry value)
     {
-        /// <inheritdoc cref="Lite3.GetUtf8Value" />
+        /// <inheritdoc cref="Lite3Core.GetUtf8Value" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetUtf8Value(ReadOnlySpan<byte> buffer, out ReadOnlySpan<byte> result)
         {
-            return Lite3.GetUtf8Value(buffer, value, out result) < 0;
+            return Lite3Core.GetUtf8Value(buffer, value, out result) < 0;
         }
         
-        /// <inheritdoc cref="Lite3.GetUtf8Value" />
+        /// <inheritdoc cref="Lite3Core.GetUtf8Value" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> GetUtf8Value(ReadOnlySpan<byte> buffer)
         {
-            Lite3.Status status;
-            return (status = Lite3.GetUtf8Value(buffer, value, out var result)) >= 0
+            Lite3Core.Status status;
+            return (status = Lite3Core.GetUtf8Value(buffer, value, out var result)) >= 0
                 ? result
                 : throw status.AsException();
         }
         
-        /// <inheritdoc cref="Lite3.GetUtf8Value" />
+        /// <inheritdoc cref="Lite3Core.GetUtf8Value" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetUtf8Value(TronContext context, out ReadOnlySpan<byte> result)
+        public bool TryGetUtf8Value(Lite3Context context, out ReadOnlySpan<byte> result)
         {
-            return Lite3.GetUtf8Value(context.Buffer, value, out result) >= 0;
+            return Lite3Core.GetUtf8Value(context.Buffer, value, out result) >= 0;
         }
 
-        /// <inheritdoc cref="Lite3.GetUtf8Value" />
+        /// <inheritdoc cref="Lite3Core.GetUtf8Value" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> GetUtf8Value(TronContext context)
+        public ReadOnlySpan<byte> GetUtf8Value(Lite3Context context)
         {
-            Lite3.Status status;
-            return (status = Lite3.GetUtf8Value(context.Buffer, value, out var result)) >= 0
+            Lite3Core.Status status;
+            return (status = Lite3Core.GetUtf8Value(context.Buffer, value, out var result)) >= 0
                 ? result
                 : throw status.AsException();
         }
@@ -68,13 +68,13 @@ public static partial class Tron
         ///     <para><b><em>Do not use for performance-sensitive code</em></b>.</para>
         ///     <para>Convenience method for getting a converted .NET-native UTF-16 string.</para>
         /// </summary>
-        /// <seealso cref="Lite3.GetUtf8Value"/>
+        /// <seealso cref="Lite3Core.GetUtf8Value"/>
         /// <param name="buffer">The message buffer.</param>
         /// <returns>The converted UTF-16 string value.</returns>
         public string GetStringValue(ReadOnlySpan<byte> buffer)
         {
-            Lite3.Status status;
-            return (status = Lite3.GetUtf8Value(buffer, value, out var result)) >= 0
+            Lite3Core.Status status;
+            return (status = Lite3Core.GetUtf8Value(buffer, value, out var result)) >= 0
                 ? Encoding.UTF8.GetString(result)
                 : throw status.AsException();
         }
@@ -83,102 +83,102 @@ public static partial class Tron
         ///     <para><b><em>Do not use for performance-sensitive code</em></b>.</para>
         ///     <para>Convenience method for getting a converted .NET-native UTF-16 string.</para>
         /// </summary>
-        /// <seealso cref="Lite3.GetUtf8Value"/>
+        /// <seealso cref="Lite3Core.GetUtf8Value"/>
         /// <param name="context">The context.</param>
         /// <returns>The converted UTF-16 string value.</returns>
-        public string GetStringValue(TronContext context)
+        public string GetStringValue(Lite3Context context)
         {
-            Lite3.Status status;
-            return (status = Lite3.GetUtf8Value(context.Buffer, value, out var result)) >= 0
+            Lite3Core.Status status;
+            return (status = Lite3Core.GetUtf8Value(context.Buffer, value, out var result)) >= 0
                 ? Encoding.UTF8.GetString(result)
                 : throw status.AsException();
         }
     }
 
-    extension(Lite3.ReadOnlyValueEntry value)
+    extension(Lite3Core.ReadOnlyValueEntry value)
     {
-        /// <inheritdoc cref="Lite3.GetValueKind(in Lite3.ReadOnlyValueEntry)" />
+        /// <inheritdoc cref="Lite3Core.GetValueKind(in Lite3Core.ReadOnlyValueEntry)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Lite3.ValueKind GetValueKind() => Lite3.GetValueKind(value);
+        public Lite3Core.ValueKind GetValueKind() => Lite3Core.GetValueKind(value);
 
-        /// <inheritdoc cref="Lite3.GetValueSize" />
+        /// <inheritdoc cref="Lite3Core.GetValueSize" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetValueSize() => Lite3.GetValueSize(value);
+        public int GetValueSize() => Lite3Core.GetValueSize(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetSize()
         {
-            return Lite3.ValueHeaderSize +
+            return Lite3Core.ValueHeaderSize +
                    value.Type switch
                    {
-                       Lite3.ValueKind.String => Lite3.StringLengthSize,
-                       Lite3.ValueKind.Bytes => Lite3.BytesLengthSize,
+                       Lite3Core.ValueKind.String => Lite3Core.StringLengthSize,
+                       Lite3Core.ValueKind.Bytes => Lite3Core.BytesLengthSize,
                        _ => 0
                    } +
-                   Lite3.GetValueSize(value);
+                   Lite3Core.GetValueSize(value);
         }
 
-        /// <inheritdoc cref="Lite3.ValueIsNull" />
+        /// <inheritdoc cref="Lite3Core.ValueIsNull" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsNull() => Lite3.ValueIsNull(value);
+        public bool IsNull() => Lite3Core.ValueIsNull(value);
 
-        /// <inheritdoc cref="Lite3.ValueIsBool" />
+        /// <inheritdoc cref="Lite3Core.ValueIsBool" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsBool() => Lite3.ValueIsBool(value);
+        public bool IsBool() => Lite3Core.ValueIsBool(value);
 
-        /// <inheritdoc cref="Lite3.ValueIsLong" />
+        /// <inheritdoc cref="Lite3Core.ValueIsLong" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsLong() => Lite3.ValueIsLong(value);
+        public bool IsLong() => Lite3Core.ValueIsLong(value);
 
-        /// <inheritdoc cref="Lite3.ValueIsDouble" />
+        /// <inheritdoc cref="Lite3Core.ValueIsDouble" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsDouble() => Lite3.ValueIsDouble(value);
+        public bool IsDouble() => Lite3Core.ValueIsDouble(value);
 
-        /// <inheritdoc cref="Lite3.ValueIsBytes" />
+        /// <inheritdoc cref="Lite3Core.ValueIsBytes" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsBytes() => Lite3.ValueIsBytes(value);
+        public bool IsBytes() => Lite3Core.ValueIsBytes(value);
 
-        /// <inheritdoc cref="Lite3.ValueIsString" />
+        /// <inheritdoc cref="Lite3Core.ValueIsString" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsString() => Lite3.ValueIsString(value);
+        public bool IsString() => Lite3Core.ValueIsString(value);
 
-        /// <inheritdoc cref="Lite3.ValueIsObject" />
+        /// <inheritdoc cref="Lite3Core.ValueIsObject" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsObject() => Lite3.ValueIsObject(value);
+        public bool IsObject() => Lite3Core.ValueIsObject(value);
 
-        /// <inheritdoc cref="Lite3.ValueIsArray" />
+        /// <inheritdoc cref="Lite3Core.ValueIsArray" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsArray() => Lite3.ValueIsArray(value);
+        public bool IsArray() => Lite3Core.ValueIsArray(value);
 
-        /// <inheritdoc cref="Lite3.GetValueBool" />
+        /// <inheritdoc cref="Lite3Core.GetValueBool" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool GetBool() => Lite3.GetValueBool(value);
+        public bool GetBool() => Lite3Core.GetValueBool(value);
 
-        /// <inheritdoc cref="Lite3.GetValueLong" />
+        /// <inheritdoc cref="Lite3Core.GetValueLong" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long GetLong() => Lite3.GetValueLong(value);
+        public long GetLong() => Lite3Core.GetValueLong(value);
 
-        /// <inheritdoc cref="Lite3.GetValueDouble" />
+        /// <inheritdoc cref="Lite3Core.GetValueDouble" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double GetDouble() => Lite3.GetValueDouble(value);
+        public double GetDouble() => Lite3Core.GetValueDouble(value);
         
-        /// <inheritdoc cref="Lite3.GetUtf8Value" />
+        /// <inheritdoc cref="Lite3Core.GetUtf8Value" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> GetUtf8() => Lite3.GetValueUtf8(value);
+        public ReadOnlySpan<byte> GetUtf8() => Lite3Core.GetValueUtf8(value);
         
         /// <summary>
         ///     <para><b><em>Do not use for performance-sensitive code</em></b>.</para>
         ///     <para>Convenience method for getting a converted .NET-native UTF-16 string.</para>
         /// </summary>
-        /// <seealso cref="Lite3.GetUtf8Value"/>
+        /// <seealso cref="Lite3Core.GetUtf8Value"/>
         /// <returns>The converted UTF-16 string value.</returns>
         public string GetStringValue()
         {
-            return Encoding.UTF8.GetString(Lite3.GetValueUtf8(value));
+            return Encoding.UTF8.GetString(Lite3Core.GetValueUtf8(value));
         }
         
-        /// <inheritdoc cref="Lite3.GetValueBytes" />
+        /// <inheritdoc cref="Lite3Core.GetValueBytes" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> GetBytes() => Lite3.GetValueBytes(value);
+        public ReadOnlySpan<byte> GetBytes() => Lite3Core.GetValueBytes(value);
     }
 }

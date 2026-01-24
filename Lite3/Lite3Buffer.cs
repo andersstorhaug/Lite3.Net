@@ -1,15 +1,15 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 
-namespace TronDotNet;
+namespace Lite3;
 
-public static class TronBuffer
+public static class Lite3Buffer
 {
     public const int MaxBufferSize = int.MaxValue;
     public const int MinBufferSize = 1024;
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Lite3.Status Grow(
+    public static Lite3Core.Status Grow(
         ArrayPool<byte> arrayPool,
         bool isRentedBuffer,
         byte[] current,
@@ -21,8 +21,8 @@ public static class TronBuffer
         var newSize = current.Length < MaxBufferSize / 4 ? current.Length << 2 : MaxBufferSize;
         newSize = Math.Clamp(newSize, MinBufferSize, MaxBufferSize);
         
-        if (current.Length > newSize - Lite3.NodeAlignmentMask)
-            return Lite3.Status.InsufficientBuffer;
+        if (current.Length > newSize - Lite3Core.NodeAlignmentMask)
+            return Lite3Core.Status.InsufficientBuffer;
         
         next = arrayPool.Rent(newSize);
         
@@ -31,6 +31,6 @@ public static class TronBuffer
         if (isRentedBuffer)
             arrayPool.Return(current);
 
-        return Lite3.Status.GrewBuffer;
+        return Lite3Core.Status.GrewBuffer;
     }
 }

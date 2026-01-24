@@ -5,11 +5,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
-        <PackageId>Tron.Lite3.SystemTextJson</PackageId>
+        <PackageId>Lite3.Net.SystemTextJson</PackageId>
         <Authors>Anders Storhaug</Authors>
-        <Description>JSON Encoding for Tron-DotNet, C# port of TRON (Lite³).</Description>
+        <Description>JSON Encoding for Lite³</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <RepositoryUrl>https://github.com/andersstorhaug/Tron-DotNet</RepositoryUrl>
+        <RepositoryUrl>https://github.com/andersstorhaug/Lite3-DotNet</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TronDotNet\TronDotNet.csproj" />
+      <ProjectReference Include="..\Lite3\Lite3.csproj" />
     </ItemGroup>
 
 </Project>

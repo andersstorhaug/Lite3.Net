@@ -1,6 +1,6 @@
-namespace TronDotNet;
+namespace Lite3;
 
-public static partial class Lite3
+public static partial class Lite3Core
 {
     public enum Status
     {

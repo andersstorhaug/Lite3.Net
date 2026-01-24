@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="TronDotNet.Generators\TronDotNet.Generators.csproj" />
-  <Project Path="TronDotNet.SystemTextJson\TronDotNet.SystemTextJson.csproj" />
-  <Project Path="TronDotNet.Tests\TronDotNet.Tests.csproj" />
-  <Project Path="TronDotNet\TronDotNet.csproj" />
-</Solution>

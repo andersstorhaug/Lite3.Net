@@ -2,11 +2,11 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
-using static TronDotNet.Lite3;
+using static Lite3.Lite3Core;
 
-namespace TronDotNet.SystemTextJson;
+namespace Lite3.SystemTextJson;
 
-public static class TronJsonEncoder
+public static class Lite3JsonEncoder
 {
     /// <summary>
     ///     Encode a message buffer to a buffer writer.
@@ -117,7 +117,7 @@ public static class TronJsonEncoder
         
         writer.WriteStartObject();
         
-        foreach (var entry in Tron.Enumerate(buffer, offset))
+        foreach (var entry in global::Lite3.Lite3.Enumerate(buffer, offset))
         {
             writer.WritePropertyName(entry.Key.GetUtf8Value(buffer));
 
@@ -137,7 +137,7 @@ public static class TronJsonEncoder
         
         writer.WriteStartArray();
 
-        foreach (var entry in Tron.Enumerate(buffer, offset, withKey: false))
+        foreach (var entry in global::Lite3.Lite3.Enumerate(buffer, offset, withKey: false))
         {
             Status status;
             if ((status = EncodeSwitch(buffer, nestingDepth, entry.GetValue(), ref writer)) < 0)

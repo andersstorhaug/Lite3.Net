@@ -3,7 +3,7 @@
   "profiles": {
     "Generators": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../TronDotNet/TronDotNet.csproj"
+      "targetProject": "../Lite3/Lite3.csproj"
     }
   }
 }

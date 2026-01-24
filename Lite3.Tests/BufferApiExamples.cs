@@ -2,11 +2,11 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
-using TronDotNet.SystemTextJson;
+using Lite3.SystemTextJson;
 using Xunit.Abstractions;
-using static TronDotNet.Lite3;
+using static Lite3.Lite3Core;
 
-namespace TronDotNet.Tests;
+namespace Lite3.Tests;
 
 /// <remarks>
 ///     Ported from C <c>buffer_api</c> examples.
@@ -22,20 +22,20 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build message
-        var position = Tron.InitializeObject(buffer);
-        Tron.SetString(buffer, ref position, 0, "event"u8, "lap_complete"u8);
-        Tron.SetLong(buffer, ref position, 0, "lap"u8, 55);
-        Tron.SetDouble(buffer, ref position, 0, "time_sec"u8, 88.427);
+        var position = Lite3.InitializeObject(buffer);
+        Lite3.SetString(buffer, ref position, 0, "event"u8, "lap_complete"u8);
+        Lite3.SetLong(buffer, ref position, 0, "lap"u8, 55);
+        Lite3.SetDouble(buffer, ref position, 0, "time_sec"u8, 88.427);
 
         output.WriteLine($"position: {position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
         
         output.WriteLine("updating lap count");
-        Tron.SetLong(buffer, ref position, 0, "lap"u8, 56);
+        Lite3.SetLong(buffer, ref position, 0, "lap"u8, 56);
         
         output.WriteLine("Data to send");
         output.WriteLine($"buflen: {position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
         
         // Transmit data / copy to new context
         var receiveBuffer = new byte[1024];
@@ -44,12 +44,12 @@ public class BufferApiExamples(ITestOutputHelper output)
         
         // Mutate (zero-copy, no parsing)
         output.WriteLine("Verifying fastest lap");
-        Tron.SetString(buffer, ref receivePosition, 0, "verified"u8, "race_control"u8);
-        Tron.SetBool(buffer, ref receivePosition, 0, "fastest_lap"u8, true);
+        Lite3.SetString(buffer, ref receivePosition, 0, "verified"u8, "race_control"u8);
+        Lite3.SetBool(buffer, ref receivePosition, 0, "fastest_lap"u8, true);
         
         output.WriteLine("Modified data:");
         output.WriteLine($"rx position: {receivePosition}");
-        output.WriteLine(TronJsonEncoder.EncodeString(receiveBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(receiveBuffer, 0));
         
         // Ready to send
     }
@@ -63,22 +63,22 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build Message
-        var position = Tron.InitializeObject(buffer);
-        Tron.SetString(buffer, ref position, 0, "title"u8, "C Programming Language, 2nd Edition"u8);
-        Tron.SetString(buffer, ref position, 0, "language"u8, "en"u8);
-        Tron.SetDouble(buffer, ref position, 0, "price_usd"u8, 60.30);
-        Tron.SetLong(buffer, ref position, 0, "pages"u8, 272);
-        Tron.SetBool(buffer, ref position, 0, "in_stock"u8, true);
-        Tron.SetNull(buffer, ref position, 0, "reviews"u8);
+        var position = Lite3.InitializeObject(buffer);
+        Lite3.SetString(buffer, ref position, 0, "title"u8, "C Programming Language, 2nd Edition"u8);
+        Lite3.SetString(buffer, ref position, 0, "language"u8, "en"u8);
+        Lite3.SetDouble(buffer, ref position, 0, "price_usd"u8, 60.30);
+        Lite3.SetLong(buffer, ref position, 0, "pages"u8, 272);
+        Lite3.SetBool(buffer, ref position, 0, "in_stock"u8, true);
+        Lite3.SetNull(buffer, ref position, 0, "reviews"u8);
         
         output.WriteLine($"position: {position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
 
-        var title = Tron.GetString(buffer, 0, "title"u8).GetStringValue(buffer);
-        var language = Tron.GetString(buffer, 0, "language"u8).GetStringValue(buffer);
-        var priceUsd = Tron.GetDouble(buffer, 0, "price_usd"u8);
-        var pages = Tron.GetLong(buffer, 0, "pages"u8);
-        var inStock = Tron.GetBool(buffer, 0, "in_stock"u8);
+        var title = Lite3.GetString(buffer, 0, "title"u8).GetStringValue(buffer);
+        var language = Lite3.GetString(buffer, 0, "language"u8).GetStringValue(buffer);
+        var priceUsd = Lite3.GetDouble(buffer, 0, "price_usd"u8);
+        var pages = Lite3.GetLong(buffer, 0, "pages"u8);
+        var inStock = Lite3.GetBool(buffer, 0, "in_stock"u8);
         
         output.WriteLine($"title: {title}");
         output.WriteLine($"language: {language}");
@@ -86,20 +86,20 @@ public class BufferApiExamples(ITestOutputHelper output)
         output.WriteLine($"pages: {pages}");
         output.WriteLine($"in_stock: {inStock}");
 
-        if (Tron.IsNull(buffer, 0, "reviews"u8))
+        if (Lite3.IsNull(buffer, 0, "reviews"u8))
         {
             output.WriteLine("No reviews to display.");
         }
         
-        output.WriteLine($"Title field exists: {Tron.ContainsKey(buffer, 0, "title"u8)}");
-        output.WriteLine($"Price field exists: {Tron.ContainsKey(buffer, 0, "price_usd"u8)}");
-        output.WriteLine($"ISBN field exists: {Tron.ContainsKey(buffer, 0, "isbn"u8)}");
+        output.WriteLine($"Title field exists: {Lite3.ContainsKey(buffer, 0, "title"u8)}");
+        output.WriteLine($"Price field exists: {Lite3.ContainsKey(buffer, 0, "price_usd"u8)}");
+        output.WriteLine($"ISBN field exists: {Lite3.ContainsKey(buffer, 0, "isbn"u8)}");
 
-        var titleKind = Tron.GetValueKind(buffer, 0, "title"u8);
+        var titleKind = Lite3.GetValueKind(buffer, 0, "title"u8);
         output.WriteLine($"Title is string type: {titleKind == ValueKind.String}");
         output.WriteLine($"Title is integer type: {titleKind == ValueKind.I64}");
 
-        var priceValue = Tron.Get(buffer, 0, "price_usd"u8);
+        var priceValue = Lite3.Get(buffer, 0, "price_usd"u8);
         output.WriteLine($"Price is string type: {priceValue.IsString()}");
         output.WriteLine($"Price is double type: {priceValue.IsDouble()}");
 
@@ -109,7 +109,7 @@ public class BufferApiExamples(ITestOutputHelper output)
             output.WriteLine($"price value type size: {priceValue.GetValueSize()}");
         }
 
-        var entryCount = Tron.GetCount(buffer, 0);
+        var entryCount = Lite3.GetCount(buffer, 0);
         output.WriteLine($"Object entries: {entryCount}");
     }
 
@@ -122,28 +122,28 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build message
-        var position = Tron.InitializeObject(buffer);
-        Tron.SetString(buffer, ref position, 0, "name"u8, "Maria"u8);
-        Tron.SetLong(buffer, ref position, 0, "age"u8, 24);
-        Tron.SetString(buffer, ref position, 0, "email"u8, "marie@example.com"u8);
+        var position = Lite3.InitializeObject(buffer);
+        Lite3.SetString(buffer, ref position, 0, "name"u8, "Maria"u8);
+        Lite3.SetLong(buffer, ref position, 0, "age"u8, 24);
+        Lite3.SetString(buffer, ref position, 0, "email"u8, "marie@example.com"u8);
         
         // Remember: strings contain an offset to the live buffer
-        var email = Tron.GetString(buffer , 0, "email"u8);
+        var email = Lite3.GetString(buffer , 0, "email"u8);
         
         // ⚠️ Buffer mutation invalidates email!
-        Tron.SetString(buffer, ref position, 0, "phone"u8, "1234567890"u8);
+        Lite3.SetString(buffer, ref position, 0, "phone"u8, "1234567890"u8);
 
         if (!email.TryGetUtf8Value(buffer, out _))
             output.WriteLine("Failed to get email");
         
         // ✅ Refresh the email so it becomes valid again
-        email = Tron.GetString(buffer, 0, "email"u8);
+        email = Lite3.GetString(buffer, 0, "email"u8);
         
         output.WriteLine($"Phone number: {email.GetStringValue(buffer)}");
 
-        Tron.SetString(buffer, ref position, 0, "country"u8, "Germany"u8);
+        Lite3.SetString(buffer, ref position, 0, "country"u8, "Germany"u8);
         
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
     }
     
     /// <remarks>
@@ -155,22 +155,22 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
 
         // Build message
-        var position = Tron.InitializeObject(buffer);
-        Tron.SetString(buffer, ref position, 0, "event"u8, "http_request"u8);
-        Tron.SetString(buffer, ref position, 0, "method"u8, "POST"u8);
-        Tron.SetLong(buffer, ref position, 0, "duration_ms"u8, 47);
+        var position = Lite3.InitializeObject(buffer);
+        Lite3.SetString(buffer, ref position, 0, "event"u8, "http_request"u8);
+        Lite3.SetString(buffer, ref position, 0, "method"u8, "POST"u8);
+        Lite3.SetLong(buffer, ref position, 0, "duration_ms"u8, 47);
         
         // Set headers
-        Tron.SetObject(buffer, ref position, 0, "headers"u8, out var headers);
-        Tron.SetString(buffer, ref position, headers, "content-type"u8, "application/json"u8);
-        Tron.SetString(buffer, ref position, headers, "x-request-id"u8, "req_9f8e2a"u8);
-        Tron.SetString(buffer, ref position, headers, "user-agent"u8, "curl/8.1.2"u8);
+        Lite3.SetObject(buffer, ref position, 0, "headers"u8, out var headers);
+        Lite3.SetString(buffer, ref position, headers, "content-type"u8, "application/json"u8);
+        Lite3.SetString(buffer, ref position, headers, "x-request-id"u8, "req_9f8e2a"u8);
+        Lite3.SetString(buffer, ref position, headers, "user-agent"u8, "curl/8.1.2"u8);
         
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
         
         // Get user-agent
-        headers = Tron.GetObject(buffer, 0, "headers"u8);
-        var userAgent = Tron.GetString(buffer, headers, "user-agent"u8);
+        headers = Lite3.GetObject(buffer, 0, "headers"u8);
+        var userAgent = Lite3.GetString(buffer, headers, "user-agent"u8);
         
         output.WriteLine($"User agent: {userAgent.GetStringValue(buffer)}");
     }
@@ -183,35 +183,35 @@ public class BufferApiExamples(ITestOutputHelper output)
     {
         var buffer = new byte[1024];
         
-        var position = Tron.InitializeArray(buffer);
-        Tron.ArrayAppendString(buffer, ref position, 0, "zebra"u8);
-        Tron.ArrayAppendString(buffer, ref position, 0, "giraffe"u8);
-        Tron.ArrayAppendString(buffer, ref position, 0, "buffalo"u8);
-        Tron.ArrayAppendString(buffer, ref position, 0, "lion"u8);
-        Tron.ArrayAppendString(buffer, ref position, 0, "rhino"u8);
-        Tron.ArrayAppendString(buffer, ref position, 0, "elephant"u8);
+        var position = Lite3.InitializeArray(buffer);
+        Lite3.ArrayAppendString(buffer, ref position, 0, "zebra"u8);
+        Lite3.ArrayAppendString(buffer, ref position, 0, "giraffe"u8);
+        Lite3.ArrayAppendString(buffer, ref position, 0, "buffalo"u8);
+        Lite3.ArrayAppendString(buffer, ref position, 0, "lion"u8);
+        Lite3.ArrayAppendString(buffer, ref position, 0, "rhino"u8);
+        Lite3.ArrayAppendString(buffer, ref position, 0, "elephant"u8);
         
         output.WriteLine($"position: {position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
 
-        var elementAtTwo = Tron.ArrayGetString(buffer, 0, 2).GetStringValue(buffer);
+        var elementAtTwo = Lite3.ArrayGetString(buffer, 0, 2).GetStringValue(buffer);
         output.WriteLine($"Element at index 2: {elementAtTwo}");
         
-        var elementCount = Tron.GetCount(buffer, 0);
+        var elementCount = Lite3.GetCount(buffer, 0);
         output.WriteLine($"Element count: {elementCount}");
         
-        var lastElement = Tron.ArrayGetString(buffer, 0, elementCount - 1).GetStringValue(buffer);
+        var lastElement = Lite3.ArrayGetString(buffer, 0, elementCount - 1).GetStringValue(buffer);
         output.WriteLine($"Last element: {lastElement}");
         
         output.WriteLine("Overwriting index 2 with \"gnu\"");
-        Tron.ArraySetString(buffer, ref position, 0, 2, "gnu"u8);
+        Lite3.ArraySetString(buffer, ref position, 0, 2, "gnu"u8);
         
         output.WriteLine($"position: {position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
         
         output.WriteLine("Overwriting index 3 with \"springbok\"");
-        Tron.ArraySetString(buffer, ref position, 0, 3, "springbok"u8);
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        Lite3.ArraySetString(buffer, ref position, 0, 3, "springbok"u8);
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
     }
     
     /// <remarks>
@@ -233,27 +233,27 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build array
-        var position = Tron.InitializeArray(buffer);
+        var position = Lite3.InitializeArray(buffer);
 
         for (var i = 0; i < names.Count; i++)
         {
-            Tron.ArrayAppendObject(buffer, ref position, 0, out var objectOffset);
-            Tron.SetLong(buffer, ref position, objectOffset, "id"u8, i);
-            Tron.SetBool(buffer, ref position, objectOffset, "vip_member"u8, false);
-            Tron.SetNull(buffer, ref position, objectOffset, "benefits"u8);
-            Tron.SetString(buffer, ref position, objectOffset, "name"u8, names[i]);
+            Lite3.ArrayAppendObject(buffer, ref position, 0, out var objectOffset);
+            Lite3.SetLong(buffer, ref position, objectOffset, "id"u8, i);
+            Lite3.SetBool(buffer, ref position, objectOffset, "vip_member"u8, false);
+            Lite3.SetNull(buffer, ref position, objectOffset, "benefits"u8);
+            Lite3.SetString(buffer, ref position, objectOffset, "name"u8, names[i]);
         }
         
-        output.WriteLine(TronJsonEncoder.EncodeString(buffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(buffer, 0));
 
         var valueOffset = 0;
-        foreach (var entry in Tron.Enumerate(buffer, 0))
+        foreach (var entry in Lite3.Enumerate(buffer, 0))
         {
             valueOffset = entry.Offset;
-            var benefits = !Tron.IsNull(buffer, entry.Offset, "benefits"u8);
-            var id = Tron.GetLong(buffer, entry.Offset, "id"u8);
-            var vipMember = Tron.GetBool(buffer, entry.Offset, "vip_member"u8);
-            var name = Tron.GetString(buffer, entry.Offset, "name"u8);
+            var benefits = !Lite3.IsNull(buffer, entry.Offset, "benefits"u8);
+            var id = Lite3.GetLong(buffer, entry.Offset, "id"u8);
+            var vipMember = Lite3.GetBool(buffer, entry.Offset, "vip_member"u8);
+            var name = Lite3.GetString(buffer, entry.Offset, "name"u8);
 
             output.WriteLine($"id: {id}, name: {name.GetStringValue(buffer)}, vip_member: {vipMember}, benefits {benefits}");
         }
@@ -262,7 +262,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         
         output.WriteLine("Object keys:");
         
-        foreach (var entry in Tron.Enumerate(buffer, valueOffset))
+        foreach (var entry in Lite3.Enumerate(buffer, valueOffset))
         {
             var key = entry.Key.GetStringValue(buffer);
             var valueEntry = entry.GetValue();
@@ -296,19 +296,19 @@ public class BufferApiExamples(ITestOutputHelper output)
         // Convert JSON file to Lite³
         await using var fileStream = File.OpenRead("periodic_table.json");
         
-        await TronJsonDecoder.DecodeAsync(PipeReader.Create(fileStream), buffer);
+        await Lite3JsonDecoder.DecodeAsync(PipeReader.Create(fileStream), buffer);
         
         // Iterator to find densest element
-        var dataOffset = Tron.GetArray(buffer , 0, "data"u8);
+        var dataOffset = Lite3.GetArray(buffer , 0, "data"u8);
 
         var densestOffset = 0;
         var densestKgPerM3 = 0.0;
-        foreach (var entry in Tron.Enumerate(buffer, dataOffset))
+        foreach (var entry in Lite3.Enumerate(buffer, dataOffset))
         {
-            if (Tron.IsNull(buffer, entry.Offset, "density_kg_per_m3"u8))
+            if (Lite3.IsNull(buffer, entry.Offset, "density_kg_per_m3"u8))
                 continue;
 
-            var kgPerM3 = Tron.GetDouble(buffer, entry.Offset, "density_kg_per_m3"u8);
+            var kgPerM3 = Lite3.GetDouble(buffer, entry.Offset, "density_kg_per_m3"u8);
             if (kgPerM3 > densestKgPerM3)
             {
                 densestOffset = entry.Offset;
@@ -318,11 +318,11 @@ public class BufferApiExamples(ITestOutputHelper output)
         
         densestOffset.ShouldNotBe(0);
         
-        var name = Tron.GetString(buffer, densestOffset, "name"u8).GetStringValue(buffer);
+        var name = Lite3.GetString(buffer, densestOffset, "name"u8).GetStringValue(buffer);
         output.WriteLine($"densest element: {name}");
         
         output.WriteLine("Convert to JSON by returned offset (prettified)");
-        var json = TronJsonEncoder.EncodeString(buffer, densestOffset, new JsonWriterOptions
+        var json = Lite3JsonEncoder.EncodeString(buffer, densestOffset, new JsonWriterOptions
         {
             Indented = true
         });
@@ -330,7 +330,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         
         output.WriteLine("Convert to JSON by writing to buffer (non-prettified):");
         var jsonBuffer = new ArrayBufferWriter<byte>(1024);
-        TronJsonEncoder.Encode(buffer, densestOffset, jsonBuffer);
+        Lite3JsonEncoder.Encode(buffer, densestOffset, jsonBuffer);
         
         output.WriteLine(Encoding.UTF8.GetString(jsonBuffer.WrittenSpan));
         output.WriteLine($"json bytes written: {jsonBuffer.WrittenCount}");

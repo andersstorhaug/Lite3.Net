@@ -1,4 +1,4 @@
-namespace TronDotNet.SystemTextJson;
+namespace Lite3.SystemTextJson;
 
 internal static class JsonConstants
 {

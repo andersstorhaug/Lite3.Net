@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace TronDotNet.SystemTextJson;
+namespace Lite3.SystemTextJson;
 
-public static class TronJsonDecoder
+public static class Lite3JsonDecoder
 {
     private const int MinReadSize = 1024;
     private const int MaxReadBufferSize = 65536;
@@ -121,7 +121,7 @@ public static class TronJsonDecoder
             if (arrayPool == null)
                 throw new ArgumentNullException(nameof(arrayPool), "A buffer must be provided.");
             
-            buffer = arrayPool.Rent(TronBuffer.MinBufferSize);
+            buffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
             isRentedBuffer = true;
         }
         
@@ -165,7 +165,7 @@ public static class TronJsonDecoder
 
                 switch (status)
                 {
-                    case Lite3.Status.NeedsMoreData:
+                    case Lite3Core.Status.NeedsMoreData:
                         if (jsonReader.BytesConsumed == 0)
                             targetReadSize = targetReadSize >= MaxReadBufferSize / 2 ? MaxReadBufferSize : targetReadSize * 2;
                         break;
@@ -214,7 +214,7 @@ public static class TronJsonDecoder
             if (arrayPool == null)
                 throw new ArgumentNullException(nameof(arrayPool), "A buffer must be provided.");
             
-            buffer = arrayPool.Rent(TronBuffer.MinBufferSize);
+            buffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
             isRentedBuffer = true;
         }
         
@@ -242,7 +242,7 @@ public static class TronJsonDecoder
         return (buffer, position);
     }
     
-    private static Lite3.Status DecodeCore(
+    private static Lite3Core.Status DecodeCore(
         ArrayPool<byte> arrayPool,
         ref FrameStack frames,
         ref byte[] buffer,
@@ -271,9 +271,9 @@ public static class TronJsonDecoder
 
             replayToken = false;
 
-            if (status == Lite3.Status.InsufficientBuffer && growBuffer)
+            if (status == Lite3Core.Status.InsufficientBuffer && growBuffer)
             {
-                status = TronBuffer.Grow(arrayPool, isRentedBuffer, buffer, out buffer);
+                status = Lite3Buffer.Grow(arrayPool, isRentedBuffer, buffer, out buffer);
                 isRentedBuffer = true;
                 replayToken = true;
             }
@@ -285,45 +285,45 @@ public static class TronJsonDecoder
         return 0;
     }
 
-    private static Lite3.Status DecodeDocument(
+    private static Lite3Core.Status DecodeDocument(
         ref FrameStack frames,
         byte[] buffer,
         ref int position,
         bool replayToken,
         ref Utf8JsonReader reader)
     {
-        Lite3.Status status;
+        Lite3Core.Status status;
 
         if (!replayToken && !reader.Read())
-            return reader.IsFinalBlock ? Lite3.Status.InsufficientBuffer : Lite3.Status.NeedsMoreData;
+            return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
 
         switch (reader.TokenType)
         {
             case JsonTokenType.StartObject:
-                if ((status = Lite3.InitializeObject(buffer, out position)) < 0)
+                if ((status = Lite3Core.InitializeObject(buffer, out position)) < 0)
                     return status;
 
                 frames.Push(Frame.ForObject(offset: 0));
                 return 0;
             case JsonTokenType.StartArray:
-                if ((status = Lite3.InitializeArray(buffer, out position)) < 0)
+                if ((status = Lite3Core.InitializeArray(buffer, out position)) < 0)
                     return status;
                 
                 frames.Push(Frame.ForArray(offset: 0));
                 return 0;
             default:
-                return Lite3.Status.ExpectedJsonArrayOrObject;
+                return Lite3Core.Status.ExpectedJsonArrayOrObject;
         }
     }
     
-    private static Lite3.Status DecodeObject(
+    private static Lite3Core.Status DecodeObject(
         ArrayPool<byte> arrayPool,
         ref FrameStack frames,
         bool replayToken,
         ref Utf8JsonReader reader)
     {
         if (reader.CurrentDepth > JsonConstants.NestingDepthMax)
-            return Lite3.Status.JsonNestingDepthExceededMax;
+            return Lite3Core.Status.JsonNestingDepthExceededMax;
         
         ref var frame = ref frames.PeekRef();
         var offset = frame.Offset;
@@ -339,16 +339,16 @@ public static class TronJsonDecoder
             }
 
             if (reader.TokenType != JsonTokenType.PropertyName)
-                return Lite3.Status.ExpectedJsonProperty;
+                return Lite3Core.Status.ExpectedJsonProperty;
 
             frames.Push(Frame.ForObjectSwitch(offset, GetKeyRef(arrayPool, ref reader)));
             return 0;
         }
 
-        return reader.IsFinalBlock ? Lite3.Status.InsufficientBuffer : Lite3.Status.NeedsMoreData;
+        return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
     }
     
-    private static Lite3.Status DecodeObjectSwitch(
+    private static Lite3Core.Status DecodeObjectSwitch(
         ArrayPool<byte> arrayPool,
         ref FrameStack frames,
         byte[] buffer,
@@ -356,48 +356,48 @@ public static class TronJsonDecoder
         bool replayToken,
         ref Utf8JsonReader reader)
     {
-        Lite3.Status status;
+        Lite3Core.Status status;
         
         ref var frame =  ref frames.PeekRef();
         var offset = frame.Offset;
         var keyRef = frame.KeyRef;
         var key = keyRef.AsSpan();
-        var keyData = Lite3.GetKeyData(key);
+        var keyData = Lite3Core.GetKeyData(key);
         
         Debug.Assert(frame.Kind == FrameKind.ObjectSwitch);
 
         if (!replayToken && !reader.Read())
-            return Lite3.Status.NeedsMoreData;
+            return Lite3Core.Status.NeedsMoreData;
         
         switch (reader.TokenType)
         {
             case JsonTokenType.Null:
-                status = Lite3.SetNull(buffer, ref position, offset, key, keyData);
+                status = Lite3Core.SetNull(buffer, ref position, offset, key, keyData);
                 break;
             case JsonTokenType.False:
-                status = Lite3.SetBool(buffer, ref position, offset, key, keyData, false);
+                status = Lite3Core.SetBool(buffer, ref position, offset, key, keyData, false);
                 break;
             case JsonTokenType.True:
-                status = Lite3.SetBool(buffer, ref position, offset, key, keyData, true);
+                status = Lite3Core.SetBool(buffer, ref position, offset, key, keyData, true);
                 break;
             case JsonTokenType.Number:
             {
                 status = reader.TryGetInt64(out var value)
-                    ? Lite3.SetLong(buffer, ref position, offset, key, keyData, value)
-                    : Lite3.SetDouble(buffer, ref position, offset, key, keyData, reader.GetDouble());
+                    ? Lite3Core.SetLong(buffer, ref position, offset, key, keyData, value)
+                    : Lite3Core.SetDouble(buffer, ref position, offset, key, keyData, reader.GetDouble());
                 break;
             }
             case JsonTokenType.String:
             {
                 var value = ReadUtf8Value(arrayPool, ref reader, out var rentedBuffer);
-                status = Lite3.SetString(buffer, ref position, offset, key, keyData, value);
+                status = Lite3Core.SetString(buffer, ref position, offset, key, keyData, value);
                 if (rentedBuffer != null)
                     arrayPool.Return(rentedBuffer);
                 break;
             }
             case JsonTokenType.StartObject:
             {
-                if ((status = Lite3.SetObject(buffer, ref position, offset, key, keyData, out var objectOffset)) >= 0)
+                if ((status = Lite3Core.SetObject(buffer, ref position, offset, key, keyData, out var objectOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
                     frames.Push(Frame.ForObject(objectOffset));
@@ -407,7 +407,7 @@ public static class TronJsonDecoder
             }
             case JsonTokenType.StartArray:
             {
-                if ((status = Lite3.SetArray(buffer, ref position, offset, key, keyData, out var arrayOffset)) >= 0)
+                if ((status = Lite3Core.SetArray(buffer, ref position, offset, key, keyData, out var arrayOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
                     frames.Push(Frame.ForArray(arrayOffset));
@@ -416,7 +416,7 @@ public static class TronJsonDecoder
                 return status;
             }
             default:
-                status = Lite3.Status.ExpectedJsonValue;
+                status = Lite3Core.Status.ExpectedJsonValue;
                 break;
         }
 
@@ -428,14 +428,14 @@ public static class TronJsonDecoder
         return status;
     }
     
-    private static Lite3.Status DecodeArray(
+    private static Lite3Core.Status DecodeArray(
         ArrayPool<byte> arrayPool,
         ref FrameStack frames,
         bool replayToken,
         ref Utf8JsonReader reader)
     {
         if (reader.CurrentDepth > JsonConstants.NestingDepthMax)
-            return Lite3.Status.JsonNestingDepthExceededMax;
+            return Lite3Core.Status.JsonNestingDepthExceededMax;
         
         ref var frame = ref frames.PeekRef();
         var offset = frame.Offset;
@@ -454,17 +454,17 @@ public static class TronJsonDecoder
             return 0;
         }
         
-        return reader.IsFinalBlock ? Lite3.Status.InsufficientBuffer : Lite3.Status.NeedsMoreData;
+        return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
     }
     
-    private static Lite3.Status DecodeArraySwitch(
+    private static Lite3Core.Status DecodeArraySwitch(
         ArrayPool<byte> arrayPool,
         ref FrameStack frames,
         byte[] buffer,
         ref int position,
         ref Utf8JsonReader reader)
     {
-        Lite3.Status status;
+        Lite3Core.Status status;
         
         ref var frame =  ref frames.PeekRef();
         var offset = frame.Offset;
@@ -474,32 +474,32 @@ public static class TronJsonDecoder
         switch (reader.TokenType)
         {
             case JsonTokenType.Null:
-                status = Lite3.ArrayAppendNull(buffer, ref position, offset);
+                status = Lite3Core.ArrayAppendNull(buffer, ref position, offset);
                 break;
             case JsonTokenType.False:
-                status = Lite3.ArrayAppendBool(buffer, ref position, offset, false);
+                status = Lite3Core.ArrayAppendBool(buffer, ref position, offset, false);
                 break;
             case JsonTokenType.True:
-                status = Lite3.ArrayAppendBool(buffer, ref position, offset, true);
+                status = Lite3Core.ArrayAppendBool(buffer, ref position, offset, true);
                 break;
             case JsonTokenType.Number:
             {
                 status = reader.TryGetInt64(out var value)
-                    ? Lite3.ArrayAppendLong(buffer, ref position, offset, value)
-                    : Lite3.ArrayAppendDouble(buffer, ref position, offset, reader.GetDouble());
+                    ? Lite3Core.ArrayAppendLong(buffer, ref position, offset, value)
+                    : Lite3Core.ArrayAppendDouble(buffer, ref position, offset, reader.GetDouble());
                 break;
             }
             case JsonTokenType.String:
             {
                 var value = ReadUtf8Value(arrayPool, ref reader, out var rentedBuffer);
-                status = Lite3.ArrayAppendString(buffer, ref position, offset, value);
+                status = Lite3Core.ArrayAppendString(buffer, ref position, offset, value);
                 if (rentedBuffer != null)
                     arrayPool.Return(rentedBuffer);
                 break;
             }
             case JsonTokenType.StartObject:
             {
-                if ((status = Lite3.ArrayAppendObject(buffer, ref position, offset, out var objectOffset)) >= 0)
+                if ((status = Lite3Core.ArrayAppendObject(buffer, ref position, offset, out var objectOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
                     frames.Push(Frame.ForObject(objectOffset));
@@ -509,7 +509,7 @@ public static class TronJsonDecoder
             }
             case JsonTokenType.StartArray:
             {
-                if ((status = Lite3.ArrayAppendArray(buffer, ref position, offset, out var arrayOffset)) >= 0)
+                if ((status = Lite3Core.ArrayAppendArray(buffer, ref position, offset, out var arrayOffset)) >= 0)
                 {
                     frames.Pop(arrayPool);
                     frames.Push(Frame.ForArray(arrayOffset));
@@ -518,7 +518,7 @@ public static class TronJsonDecoder
                 return status;
             }
             default:
-                status = Lite3.Status.ExpectedJsonValue;
+                status = Lite3Core.Status.ExpectedJsonValue;
                 break;
         }
         
@@ -594,9 +594,9 @@ public static class TronJsonDecoder
         public ref Frame PeekRef() => ref _frames[_index];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Lite3.Status Push(in Frame frame)
+        public Lite3Core.Status Push(in Frame frame)
         {
-            if (_index > _frames.Length - 1) return Lite3.Status.JsonNestingDepthExceededMax;
+            if (_index > _frames.Length - 1) return Lite3Core.Status.JsonNestingDepthExceededMax;
             _frames[++_index] = frame;
             return 0;
         }

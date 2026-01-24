@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
 
-namespace TronDotNet;
+namespace Lite3;
 
-public static unsafe partial class Lite3
+public static unsafe partial class Lite3Core
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Node* GetNodePtr(ReadOnlySpan<byte> buffer, int offset)

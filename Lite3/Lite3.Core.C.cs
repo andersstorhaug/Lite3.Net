@@ -2,12 +2,12 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
+using Lite3.Generators;
 using Microsoft.Extensions.Logging;
-using TronDotNet.Generators;
 
-namespace TronDotNet;
+namespace Lite3;
 
-public static unsafe partial class Lite3
+public static unsafe partial class Lite3Core
 {
     #region Logging
     [LoggerMessage(LogLevel.Debug, "GET key: {Hash}"), Conditional("DEBUG")]
@@ -552,7 +552,7 @@ public static unsafe partial class Lite3
     ///         <em>Ported from C <c>lite3_init_obj</c>.</em>
     ///     </para>
     /// </remarks>
-    [TronApi(ReturnArg = nameof(position))]
+    [Lite3Api(ReturnArg = nameof(position))]
     public static Status InitializeObject(Span<byte> buffer, out int position)
     {
         position = 0;
@@ -583,7 +583,7 @@ public static unsafe partial class Lite3
     ///         <em>Ported from C <c>lite3_init_arr</c>.</em>
     ///     </para>
     /// </remarks>
-    [TronApi(ReturnArg = nameof(position))]
+    [Lite3Api(ReturnArg = nameof(position))]
     public static Status InitializeArray(Span<byte> buffer, out int position)
     {
         position = 0;

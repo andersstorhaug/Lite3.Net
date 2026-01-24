@@ -1,8 +1,8 @@
-namespace TronDotNet;
+namespace Lite3;
 
-using static Lite3;
+using static Lite3Core;
 
-public readonly ref struct TronEnumerable(ReadOnlySpan<byte> buffer, int offset, bool writeKey, bool writeOffset)
+public readonly ref struct Lite3Enumerable(ReadOnlySpan<byte> buffer, int offset, bool writeKey, bool writeOffset)
 {
     private readonly ReadOnlySpan<byte> _buffer = buffer;
 

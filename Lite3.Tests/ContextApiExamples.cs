@@ -2,11 +2,11 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
-using TronDotNet.SystemTextJson;
+using Lite3.SystemTextJson;
 using Xunit.Abstractions;
-using static TronDotNet.Lite3;
+using static Lite3.Lite3Core;
 
-namespace TronDotNet.Tests;
+namespace Lite3.Tests;
 
 /// <remarks>
 ///     Ported from C <c>context_api</c> examples.
@@ -19,7 +19,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_build_messages()
     {
-        var context = TronContext.Create();
+        var context = Lite3Context.Create();
         using var scope = context.BeginScope();
 
         // Build message
@@ -30,17 +30,17 @@ public class ContextApiExamples(ITestOutputHelper output)
             .SetDouble(0, "time_sec"u8, 88.427);
 
         output.WriteLine($"position: {context.Position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
         
         output.WriteLine("updating lap count");
         context.SetLong(0, "lap"u8, 56);
         
         output.WriteLine("Data to send");
         output.WriteLine($"buflen: {context.Position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
         
         // Transmit data / copy to new context
-        var receiveContext = TronContext.CreateFrom(context.Buffer, context.Position);
+        var receiveContext = Lite3Context.CreateFrom(context.Buffer, context.Position);
         using var transmitScope = receiveContext.BeginScope();
         
         // Mutate (zero-copy, no parsing)
@@ -51,7 +51,7 @@ public class ContextApiExamples(ITestOutputHelper output)
         
         output.WriteLine("Modified data:");
         output.WriteLine($"rx position: {receiveContext.Position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(receiveContext.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(receiveContext.WrittenBuffer, 0));
         
         // Ready to send
     }
@@ -62,7 +62,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_read_messages()
     {
-        var context = TronContext.Create();
+        var context = Lite3Context.Create();
         using var scope = context.BeginScope();
         
         // Build Message
@@ -76,7 +76,7 @@ public class ContextApiExamples(ITestOutputHelper output)
             .SetNull(0, "reviews"u8);
         
         output.WriteLine($"position: {context.Position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
 
         var title = context.GetString(0, "title"u8).GetStringValue(context);
         var language = context.GetString(0, "language"u8).GetStringValue(context);
@@ -123,7 +123,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_work_with_strings()
     {
-        var context = TronContext.Create();
+        var context = Lite3Context.Create();
         using var scope = context.BeginScope();
 
         // Build message
@@ -149,7 +149,7 @@ public class ContextApiExamples(ITestOutputHelper output)
 
         context.SetString(0, "country"u8, "Germany"u8);
         
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
     }
 
     /// <remarks>
@@ -158,7 +158,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_work_with_nesting()
     {
-        var context = TronContext.Create();
+        var context = Lite3Context.Create();
         using var scope = context.BeginScope();
 
         // Build message
@@ -175,7 +175,7 @@ public class ContextApiExamples(ITestOutputHelper output)
             .SetString(headers, "x-request-id"u8, "req_9f8e2a"u8)
             .SetString(headers, "user-agent"u8, "curl/8.1.2"u8);
         
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
         
         // Get user-agent
         headers = context.GetObject(0, "headers"u8);
@@ -190,7 +190,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_work_with_arrays()
     {
-        var context = TronContext.Create();
+        var context = Lite3Context.Create();
         using var scope = context.BeginScope();
 
         context
@@ -203,7 +203,7 @@ public class ContextApiExamples(ITestOutputHelper output)
             .ArrayAppendString(0, "elephant"u8);
         
         output.WriteLine($"position: {context.Position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
 
         var elementAtTwo = context.ArrayGetString(0, 2).GetStringValue(context);
         output.WriteLine($"Element at index 2: {elementAtTwo}");
@@ -218,11 +218,11 @@ public class ContextApiExamples(ITestOutputHelper output)
         context.ArraySetString(0, 2, "gnu"u8);
         
         output.WriteLine($"position: {context.Position}");
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
         
         output.WriteLine("Overwriting index 3 with \"springbok\"");
         context.ArraySetString(0, 3, "springbok"u8);
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
     }
 
     /// <remarks>
@@ -241,7 +241,7 @@ public class ContextApiExamples(ITestOutputHelper output)
             "Sarah"u8.ToArray(),
         };
         
-        var context = TronContext.Create();
+        var context = Lite3Context.Create();
         using var scope = context.BeginScope();
         
         // Build array
@@ -257,10 +257,10 @@ public class ContextApiExamples(ITestOutputHelper output)
                 .SetString(objectOffset, "name"u8, names[i]);
         }
         
-        output.WriteLine(TronJsonEncoder.EncodeString(context.WrittenBuffer, 0));
+        output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
 
         var valueOffset = 0;
-        foreach (var entry in Tron.Enumerate(context.WrittenBuffer, 0))
+        foreach (var entry in Lite3.Enumerate(context.WrittenBuffer, 0))
         {
             valueOffset = entry.Offset;
             var benefits = !context.IsNull(entry.Offset, "benefits"u8);
@@ -275,7 +275,7 @@ public class ContextApiExamples(ITestOutputHelper output)
         
         output.WriteLine("Object keys:");
         
-        foreach (var entry in Tron.Enumerate(context.WrittenBuffer, valueOffset))
+        foreach (var entry in Lite3.Enumerate(context.WrittenBuffer, valueOffset))
         {
             var key = entry.Key.GetStringValue(context);
             var valueEntry = entry.GetValue();
@@ -307,8 +307,8 @@ public class ContextApiExamples(ITestOutputHelper output)
         // Convert JSON file to Lite³
         await using var fileStream = File.OpenRead("periodic_table.json");
         
-        var decodeResult = await TronJsonDecoder.DecodeAsync(PipeReader.Create(fileStream));
-        var context = TronContext.CreateFromOwned(decodeResult.Buffer, decodeResult.Position, decodeResult.ArrayPool);
+        var decodeResult = await Lite3JsonDecoder.DecodeAsync(PipeReader.Create(fileStream));
+        var context = Lite3Context.CreateFromOwned(decodeResult.Buffer, decodeResult.Position, decodeResult.ArrayPool);
         
         using var scope = context.BeginScope();
         
@@ -317,7 +317,7 @@ public class ContextApiExamples(ITestOutputHelper output)
 
         var densestOffset = 0;
         var densestKgPerM3 = 0.0;
-        foreach (var entry in Tron.Enumerate(context.WrittenBuffer, dataOffset))
+        foreach (var entry in Lite3.Enumerate(context.WrittenBuffer, dataOffset))
         {
             if (context.IsNull(entry.Offset, "density_kg_per_m3"u8))
                 continue;
@@ -336,7 +336,7 @@ public class ContextApiExamples(ITestOutputHelper output)
         output.WriteLine($"densest element: {name}");
         
         output.WriteLine("Convert to JSON by returned offset (prettified)");
-        var json = TronJsonEncoder.EncodeString(context.WrittenBuffer, densestOffset, new JsonWriterOptions
+        var json = Lite3JsonEncoder.EncodeString(context.WrittenBuffer, densestOffset, new JsonWriterOptions
         {
             Indented = true
         });
@@ -344,7 +344,7 @@ public class ContextApiExamples(ITestOutputHelper output)
         
         output.WriteLine("Convert to JSON by writing to buffer (non-prettified):");
         var jsonBuffer = new ArrayBufferWriter<byte>(1024);
-        TronJsonEncoder.Encode(context.WrittenBuffer, densestOffset, jsonBuffer);
+        Lite3JsonEncoder.Encode(context.WrittenBuffer, densestOffset, jsonBuffer);
         
         output.WriteLine(Encoding.UTF8.GetString(jsonBuffer.WrittenSpan));
         output.WriteLine($"json bytes written: {jsonBuffer.WrittenCount}");

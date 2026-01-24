@@ -1,13 +1,13 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Lite3.Generators;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using TronDotNet.Generators;
 
-namespace TronDotNet;
+namespace Lite3;
 
-public static unsafe partial class Lite3
+public static unsafe partial class Lite3Core
 {
     #region Logging
     private static ILogger _logger = NullLogger.Instance;
@@ -41,7 +41,7 @@ public static unsafe partial class Lite3
     
     /// <remarks>From <c>lite3_get_key_data</c></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [TronApi(IsTryPattern = false)]
+    [Lite3Api(IsTryPattern = false)]
     public static KeyData GetKeyData(ReadOnlySpan<byte> key)
     {
         var hash = 5381u;
@@ -131,7 +131,7 @@ public static unsafe partial class Lite3
         0 // Invalid
     ];
 
-    static Lite3()
+    static Lite3Core()
     {
         if (ValueKindSizes.Length != (int)ValueKind.InvalidMarker)
             throw new InvalidOperationException("lite3_type_sizes[] element count != LITE3_TYPE_COUNT");
@@ -161,11 +161,11 @@ public static unsafe partial class Lite3
     
     /// <summary>
     ///     <para>Holds a reference to a string value inside a message buffer.</para>
-    ///     <para>Returned by <see cref="Lite3.GetString" />.</para>
+    ///     <para>Returned by <see cref="Lite3Core.GetString" />.</para>
     ///     <para>Buffers store an internal "generation count"; any mutations to the buffer will increment the count.</para>
     /// </summary>
     /// <remarks>
-    ///     <para>Never use the offset against the buffer directly! Always use <see cref="Lite3.GetUtf8Value" /> for safe access!</para>
+    ///     <para>Never use the offset against the buffer directly! Always use <see cref="Lite3Core.GetUtf8Value" /> for safe access!</para>
     ///     <para><em>Ported from C <c>lite3_str</c>.</em></para>
     /// </remarks>
     public struct StringEntry(uint gen, int length, int offset)
@@ -200,7 +200,7 @@ public static unsafe partial class Lite3
     /// <param name="result">On success, the value bytes; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>LITE3_BYTES</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(result))]
+    [Lite3Api(ReturnArg = nameof(result))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetBytes(ReadOnlySpan<byte> buffer, BytesEntry value, out ReadOnlySpan<byte> result)
     {
@@ -232,7 +232,7 @@ public static unsafe partial class Lite3
     /// <param name="result">On success, the UTF-8 string bytes; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>LITE3_STR</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(result))]
+    [Lite3Api(ReturnArg = nameof(result))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetUtf8Value(ReadOnlySpan<byte> buffer, StringEntry value, out ReadOnlySpan<byte> result)
     {
@@ -308,7 +308,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_null</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetNull(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -335,7 +335,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_bool</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetBool(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, bool value)
     {
@@ -363,7 +363,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_i64</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetLong(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, long value)
     {
@@ -391,7 +391,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_f64</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetDouble(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, double value)
     {
@@ -419,7 +419,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value UTF8 string.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_bytes</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetBytes(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, ReadOnlySpan<byte> value)
     {
@@ -448,7 +448,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_str</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetString(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, in KeyData keyData, ReadOnlySpan<byte> value)
     {
@@ -482,7 +482,7 @@ public static unsafe partial class Lite3
     /// <param name="objectOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_obj</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetObject(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int objectOffset)
     {
@@ -506,7 +506,7 @@ public static unsafe partial class Lite3
     /// <param name="arrayOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_set_arr</c>.</em></remarks>
-    [TronApi(KeyDataArg = nameof(keyData), ReturnArg = nameof(arrayOffset))]
+    [Lite3Api(KeyDataArg = nameof(keyData), ReturnArg = nameof(arrayOffset))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetArray(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int arrayOffset)
     {
@@ -575,7 +575,7 @@ public static unsafe partial class Lite3
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_null</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendNull(Span<byte> buffer, ref int position, int offset)
     {
@@ -599,7 +599,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to append.</param>
     /// <returns><c>true</c> on success; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_bool</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendBool(Span<byte> buffer, ref int position, int offset, bool value)
     {
@@ -624,7 +624,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_i64</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendLong(Span<byte> buffer, ref int position, int offset, long value)
     {
@@ -649,7 +649,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_f64</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendDouble(Span<byte> buffer, ref int position, int offset, double value)
     {
@@ -674,7 +674,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_bytes</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendBytes(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> value)
     {
@@ -698,7 +698,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_str_n</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendString(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> value)
     {
@@ -725,7 +725,7 @@ public static unsafe partial class Lite3
     /// <param name="objectOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_obj</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendObject(Span<byte> buffer, ref int position, int offset, out int objectOffset)
     {
@@ -747,7 +747,7 @@ public static unsafe partial class Lite3
     /// <param name="arrayOffset">The new array start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_append_arr</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendArray(Span<byte> buffer, ref int position, int offset, out int arrayOffset)
     {
@@ -769,7 +769,7 @@ public static unsafe partial class Lite3
     /// <param name="index">The array index.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_null</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetNull(Span<byte> buffer, ref int position, int offset, uint index)
     {
@@ -792,7 +792,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_bool</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetBool(Span<byte> buffer, ref int position, int offset, uint index, bool value)
     {
@@ -816,7 +816,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_i64</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetLong(Span<byte> buffer, ref int position, int offset, uint index, long value)
     {
@@ -840,7 +840,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_f64</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetDouble(Span<byte> buffer, ref int position, int offset, uint index, double value)
     {
@@ -864,7 +864,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_bytes</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetBytes(Span<byte> buffer, ref int position, int offset, uint index, ReadOnlySpan<byte> value)
     {
@@ -889,7 +889,7 @@ public static unsafe partial class Lite3
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_str_n</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetString(Span<byte> buffer, ref int position, int offset, uint index, ReadOnlySpan<byte> value)
     {
@@ -917,7 +917,7 @@ public static unsafe partial class Lite3
     /// <param name="objectOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_obj</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetObject(Span<byte> buffer, ref int position, int offset, uint index, out int objectOffset)
     {
@@ -940,7 +940,7 @@ public static unsafe partial class Lite3
     /// <param name="arrayOffset">The new array start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_set_arr</c>.</em></remarks>
-    [TronApi]
+    [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetArray(Span<byte> buffer, ref int position, int offset, uint index, out int arrayOffset)
     {
@@ -1031,7 +1031,7 @@ public static unsafe partial class Lite3
     /// <summary>Find value by key and return value type.</summary>
     /// <returns>The value type on success; otherwise <see cref="ValueKind.Invalid" />.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_type</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueKind GetValueKind(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1060,7 +1060,7 @@ public static unsafe partial class Lite3
     ///     </para>
     ///     <para><em>Ported from C <c>lite3_get_type_size</c>.</em></para>
     /// </remarks>
-    [TronApi(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetValueSize(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out uint value)
     {
@@ -1093,7 +1093,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful the key exists or <c>false</c> if not; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_exists</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsKey(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1112,7 +1112,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the count if successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_count</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value))]
+    [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetCount(ReadOnlySpan<byte> buffer, int offset, out uint value)
     {
@@ -1142,7 +1142,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value is null; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_null</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNull(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1164,7 +1164,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is bool; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_bool</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsBool(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1186,7 +1186,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is integer; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_i64</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLong(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1208,7 +1208,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is floating point; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_f64</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDouble(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1230,7 +1230,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is bytes; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_bytes</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsBytes(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1252,7 +1252,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is string; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_str</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsString(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1274,7 +1274,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is object; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_obj</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsObject(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1296,7 +1296,7 @@ public static unsafe partial class Lite3
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is array; otherwise <c>false</c>.</returns>
     /// <remarks><em>Ported from C <c>lite3_is_arr</c>.</em></remarks>
-    [TronApi(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsArray(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
@@ -1327,7 +1327,7 @@ public static unsafe partial class Lite3
     ///     </para>
     ///     <para><em>Ported from C <c>lite3_get</c>.</em></para>
     /// </remarks>
-    [TronApi(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status Get(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out ReadOnlyValueEntry value)
     {
@@ -1350,7 +1350,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the boolean value when successful; otherwise false.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_bool</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetBool(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out bool value)
     {
@@ -1383,7 +1383,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the integer value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_i64</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetLong(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out long value)
     {
@@ -1416,7 +1416,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the floating point value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_f64</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetDouble(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out double value)
     {
@@ -1449,7 +1449,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the bytes value entry when successful; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_bytes</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Status GetBytes(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out BytesEntry value)
     {
@@ -1486,7 +1486,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the string value entry when successful; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_str_n</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetString(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out StringEntry value)
     {
@@ -1525,7 +1525,7 @@ public static unsafe partial class Lite3
     /// <param name="objectOffset">On return, object start offset value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_obj</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(objectOffset), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(objectOffset), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetObject(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int objectOffset)
     {
@@ -1558,7 +1558,7 @@ public static unsafe partial class Lite3
     /// <param name="arrayOffset">On return, the array start offset when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_get_arr</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(arrayOffset), KeyDataArg = nameof(keyData))]
+    [Lite3Api(ReturnArg = nameof(arrayOffset), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetArray(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int arrayOffset)
     {
@@ -1590,7 +1590,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the boolean value when successful; otherwise false.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_get_bool</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value))]
+    [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetBool(ReadOnlySpan<byte> buffer, int offset, uint index, out bool value)
     {
@@ -1619,7 +1619,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the integer value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_get_i64</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value))]
+    [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetLong(ReadOnlySpan<byte> buffer, int offset, uint index, out long value)
     {
@@ -1648,7 +1648,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the floating point value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_get_f64</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value))]
+    [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetDouble(ReadOnlySpan<byte> buffer, int offset, uint index, out double value)
     {
@@ -1677,7 +1677,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the bytes value entry when successful; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_get_bytes</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value))]
+    [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Status ArrayGetBytes(ReadOnlySpan<byte> buffer, int offset, uint index, out BytesEntry value)
     {
@@ -1709,7 +1709,7 @@ public static unsafe partial class Lite3
     /// <param name="value">On return, the string value entry when successful; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_get_str</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(value))]
+    [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetString(ReadOnlySpan<byte> buffer, int offset, uint index, out StringEntry value)
     {
@@ -1744,7 +1744,7 @@ public static unsafe partial class Lite3
     /// <param name="objectOffset">On return, the object start offset when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_get_obj</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(objectOffset))]
+    [Lite3Api(ReturnArg = nameof(objectOffset))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetObject(ReadOnlySpan<byte> buffer, int offset, uint index, out int objectOffset)
     {
@@ -1773,7 +1773,7 @@ public static unsafe partial class Lite3
     /// <param name="arrayOffset">On return, the array start offset when successful; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
     /// <remarks><em>Ported from C <c>lite3_arr_get_arr</c>.</em></remarks>
-    [TronApi(ReturnArg = nameof(arrayOffset))]
+    [Lite3Api(ReturnArg = nameof(arrayOffset))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetArray(ReadOnlySpan<byte> buffer, int offset, uint index, out int arrayOffset)
     {
@@ -1827,7 +1827,7 @@ public static unsafe partial class Lite3
     /// </summary>
     /// <param name="entry">The value entry.</param>
     /// <remarks><em>Ported from C <c>lite3_val_type</c>.</em></remarks>
-    [TronApi(IsTryPattern = false)]
+    [Lite3Api(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueKind GetValueKind(in ReadOnlyValueEntry entry)
     {
@@ -1850,7 +1850,7 @@ public static unsafe partial class Lite3
     ///     </para>
     ///     <para><em>Ported from C <c>lite3_val_type_size</c>.</em></para>
     /// </remarks>
-    [TronApi(IsTryPattern = false)]
+    [Lite3Api(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int GetValueSize(in ReadOnlyValueEntry entry)
     {

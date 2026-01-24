@@ -1,13 +1,13 @@
 using System.Text;
+using Lite3.Generators.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using TronDotNet.Generators.Text;
-using static TronDotNet.Generators.TronApiGenerator.AttributeProperty;
+using static Lite3.Generators.Lite3ApiGenerator.AttributeProperty;
 
-namespace TronDotNet.Generators;
+namespace Lite3.Generators;
 
 [Generator]
-public class TronApiGenerator : IIncrementalGenerator
+public class Lite3ApiGenerator : IIncrementalGenerator
 {
     public static class AttributeProperty
     {
@@ -18,14 +18,14 @@ public class TronApiGenerator : IIncrementalGenerator
     }
 
     private const string
-        CoreTypeName = "Lite3",
-        TronTypeName = "Tron",
-        TronContextTypeName = "TronContext",
-        TronContextExtensionsTypeName = $"{TronContextTypeName}Extensions",
+        CoreTypeName = "Lite3Core",
+        PublicTypeName = "Lite3",
+        ContextTypeName = "Lite3Context",
+        ContextExtensionsTypeName = $"{ContextTypeName}Extensions",
         CoreMethodPrefix = $"{CoreTypeName}.",
-        CoreNamespace = $"{nameof(TronDotNet)}",
+        CoreNamespace = $"{nameof(Lite3)}",
         AttributeNamespace = $"{CoreNamespace}.{nameof(Generators)}",
-        AttributeName = "TronApiAttribute",
+        AttributeName = "Lite3ApiAttribute",
         AttributeTypeMetadataName = $"{AttributeNamespace}.{AttributeName}",
         AttributeSource =
             $$"""
@@ -65,25 +65,25 @@ public class TronApiGenerator : IIncrementalGenerator
 
                 var attributeType = compilation.GetTypeByMetadataName(AttributeTypeMetadataName);
 
-                var tronPrimarySource = new StringBuilder();
-                var tronContextSource = new StringBuilder();
+                var primarySource = new StringBuilder();
+                var contextSource = new StringBuilder();
                 
-                tronPrimarySource
+                primarySource
                     .Append("namespace ").Append(CoreNamespace).AppendLine(";")
                     .AppendLine()
                     .AppendLine("using System.Runtime.CompilerServices;")
-                    .Append("using static ").Append(CoreNamespace).Append(".").Append(CoreTypeName).AppendLine(";")
+                    .Append("using static ").Append(CoreTypeName).AppendLine(";")
                     .AppendLine()
-                    .Append("public static partial class ").AppendLine(TronTypeName)
+                    .Append("public static partial class ").AppendLine(PublicTypeName)
                     .AppendLine("{");
                 
-                tronContextSource
+                contextSource
                     .Append("namespace ").Append(CoreNamespace).AppendLine(";")
                     .AppendLine()
                     .AppendLine("using System.Runtime.CompilerServices;")
-                    .Append("using static ").Append(CoreNamespace).Append(".").Append(CoreTypeName).AppendLine(";")
+                    .Append("using static ").Append(CoreTypeName).AppendLine(";")
                     .AppendLine()
-                    .Append("public static class ").AppendLine(TronContextExtensionsTypeName)
+                    .Append("public static class ").AppendLine(ContextExtensionsTypeName)
                     .AppendLine("{");
                 
                 foreach (var (method, methodIndex) in methodSymbols.Select(Index))
@@ -117,24 +117,24 @@ public class TronApiGenerator : IIncrementalGenerator
 
                     var writeNewLine = methodIndex > 0;
                     // ReSharper disable RedundantAssignment
-                    writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: true, isContextApi: true);
-                    writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: false, isContextApi: true);
-                    writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: true, isContextApi: true);
-                    writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: false, isContextApi: true);
+                    writeNewLine |= TryWriteMethod(contextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: true, isContextApi: true);
+                    writeNewLine |= TryWriteMethod(contextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: false, isContextApi: true);
+                    writeNewLine |= TryWriteMethod(contextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: true, isContextApi: true);
+                    writeNewLine |= TryWriteMethod(contextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: false, isContextApi: true);
                     
                     writeNewLine = methodIndex > 0;
-                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: true, isContextApi: false);
-                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: false, isContextApi: false);
-                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: true, isContextApi: false);
-                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: false, isContextApi: false);
+                    writeNewLine |= TryWriteMethod(primarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: true, isContextApi: false);
+                    writeNewLine |= TryWriteMethod(primarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: false, isContextApi: false);
+                    writeNewLine |= TryWriteMethod(primarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: true, isContextApi: false);
+                    writeNewLine |= TryWriteMethod(primarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: false, isContextApi: false);
                     // ReSharper restore RedundantAssignment
                 }
                 
-                tronPrimarySource.AppendLine("}");
-                tronContextSource.AppendLine("}");
+                primarySource.AppendLine("}");
+                contextSource.AppendLine("}");
                 
-                context.AddSource($"Tron.g.cs", tronPrimarySource.ToString());
-                context.AddSource($"TronContextExtensions.g.cs", tronContextSource.ToString());
+                context.AddSource($"Lite3.g.cs", primarySource.ToString());
+                context.AddSource($"Lite3ContextExtensions.g.cs", contextSource.ToString());
             }
         );
     }
@@ -194,9 +194,11 @@ public class TronApiGenerator : IIncrementalGenerator
         
         var originalReturnTypeName = method.ReturnsVoid ? "void" : GetTypeName(method.ReturnType);
 
-        var returnTypeName =
+        const string refContext = $"ref {ContextTypeName}";
+            
+        var returnTypeMoniker =
             useTryPattern ? "bool" :
-            isContextApi && isChainableMethod ? "ref TronContext" :
+            isContextApi && isChainableMethod ? refContext :
             returnArgParam != null ? GetTypeName(returnArgParam.Type) :
             tryPattern ? "void" :
             originalReturnTypeName;
@@ -254,7 +256,7 @@ public class TronApiGenerator : IIncrementalGenerator
 
                 if (text.StartsWith("<returns>"))
                 {   
-                    if (returnTypeName == "void")
+                    if (returnTypeMoniker == "void")
                         continue;
                     
                     if (useTryPattern)
@@ -300,7 +302,7 @@ public class TronApiGenerator : IIncrementalGenerator
             .Append(indent).AppendLine(InlineAttribute)
             .Append(indent)
             .Append("public static ")
-            .Append(returnTypeName)
+            .Append(returnTypeMoniker)
             .Append(" ")
             .Append(useTryPattern ? "Try" : null)
             .Append(method.Name)
@@ -311,7 +313,7 @@ public class TronApiGenerator : IIncrementalGenerator
         {
             if (isContextApi && index == 0)
             {
-                source.Append("this ref TronContext context");
+                source.Append("this ").Append(refContext).Append(" context");
                 indexOffset++;
             }
             
@@ -410,7 +412,7 @@ public class TronApiGenerator : IIncrementalGenerator
                 source.Append(indent).AppendLine("return ref context;");
             else if (returnArgParam != null)
                 source.Append(indent).Append("return ").Append(returnArgParam.Name).AppendLine(";");
-            else if (returnTypeName != "void")
+            else if (returnTypeMoniker != "void")
                 source.Append(indent).AppendLine("return result;");
         }
 

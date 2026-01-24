@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Lite3.Generators\Lite3.Generators.csproj" />
+  <Project Path="Lite3.SystemTextJson\Lite3.SystemTextJson.csproj" />
+  <Project Path="Lite3.Tests\Lite3.Tests.csproj" />
+  <Project Path="Lite3\Lite3.csproj" />
+</Solution>

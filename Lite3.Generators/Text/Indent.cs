@@ -1,4 +1,4 @@
-namespace TronDotNet.Generators.Text;
+namespace Lite3.Generators.Text;
 
 internal class Indent
 {

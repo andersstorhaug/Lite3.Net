@@ -1,4 +1,4 @@
-namespace TronDotNet.Tests;
+namespace Lite3.Tests;
 
 /// <remarks>
 /// Ported from <c>collisions.c</c>.
@@ -14,7 +14,7 @@ public class CollisionsTests
         var buffer = new byte[1024 * 64];
         var random = new Random(52073821);
 
-        var position = Tron.InitializeObject(buffer);
+        var position = Lite3.InitializeObject(buffer);
 
         const int keyLength = 2;
         
@@ -36,11 +36,11 @@ public class CollisionsTests
         for (var i = 0; i < keyArray.Length; i += keyLength)
         {
             var currentKey = keyArray.Slice(i, keyLength);
-            var keyData = Tron.GetKeyData(keyArray.Slice(i, keyLength));
+            var keyData = Lite3.GetKeyData(keyArray.Slice(i, keyLength));
             if (previousHash == keyData.Hash && previousKey.SequenceEqual(currentKey))
             {
-                Tron.SetNull(buffer, ref position, 0, previousKey, keyData);
-                Tron.SetNull(buffer, ref position, 0, currentKey, keyData);
+                Lite3.SetNull(buffer, ref position, 0, previousKey, keyData);
+                Lite3.SetNull(buffer, ref position, 0, currentKey, keyData);
                 previousKey.CopyTo(collidingKeysAppendArray);
                 collidingKeysAppendArray = collidingKeysAppendArray[keyLength..];
                 collidingKeyCount++;
@@ -54,7 +54,7 @@ public class CollisionsTests
         {
             var testKey = collidingKeysArray.Slice(i, keyLength);
 
-            Tron.ContainsKey(buffer, 0, testKey).ShouldBeTrue();
+            Lite3.ContainsKey(buffer, 0, testKey).ShouldBeTrue();
         }
     }
 }

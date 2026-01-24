@@ -1,8 +1,8 @@
-# TRON (Lite³) A JSON-Compatible Zero-Copy Serialization Format
+# Lite³: A JSON-Compatible Zero-Copy Serialization Format
 
-[![NuGet](https://img.shields.io/nuget/v/Tron.Lite3.svg)](https://www.nuget.org/packages/Tron.Lite3)
+[![NuGet](https://img.shields.io/nuget/v/lite3-dotnet.svg)](https://www.nuget.org/packages/Lite3.DotNet)
 
-This is a C# port of [TRON](https://github.com/fastserial/lite3) (formerly Lite³).
+This is a C# port of [Lite³](https://github.com/fastserial/lite3).
 
 ## Current Status
 
@@ -22,7 +22,7 @@ These APIs are supported by a Source Generator against the core implementation, 
 
 Additionally, feature-parity is provided in general, with additional features specific to .NET.
 
-- JSON decoding and encoding 
+- JSON decoding and encoding
   - Uses `System.Text.Json`'s `Utf8JsonReader` and `Utf8JsonWriter` internally.
   - Asynchronous decode/encode using `System.IO.Pipelines`'s `PipeReader` and `PipeWriter`, respectively.
   - Synchronous decode/encode using `Span<byte>` and `System.Buffers.IBufferWriter<byte>`, respectively.
@@ -35,12 +35,12 @@ The following example using the Buffer API outputs `Max Retries: 3`.
 ```csharp
 var buffer = new byte[1024];
 
-var position = Tron.InitializeObject(buffer);
-Tron.SetString(buffer, ref position, 0, "app_name"u8, "demo_app"u8);
-Tron.SetLong(buffer, ref position, 0, "max_retries"u8, 3);
-Tron.SetBool(buffer, ref position, 0, "debug_mode"u8, false);
+var position = Lite3.InitializeObject(buffer);
+Lite3.SetString(buffer, ref position, 0, "app_name"u8, "demo_app"u8);
+Lite3.SetLong(buffer, ref position, 0, "max_retries"u8, 3);
+Lite3.SetBool(buffer, ref position, 0, "debug_mode"u8, false);
 
-var maxRetries = Tron.GetLong(buffer, 0, "max_retries"u8);
+var maxRetries = Lite3.GetLong(buffer, 0, "max_retries"u8);
 
 Console.WriteLine($"Max Retries: {maxRetries}");
 ```
@@ -48,7 +48,7 @@ Console.WriteLine($"Max Retries: {maxRetries}");
 The equivalent Context API code is below.
 
 ```csharp
-var context = TronContext.Create();
+var context = Lite3Context.Create();
 
 using var scope = context.BeginScope();
 
@@ -62,9 +62,9 @@ var maxRetries = context.GetLong(0, "max_retries"u8);
 Console.WriteLine($"Max Retries: {maxRetries}");
 ```
 
-See [`ContextApiExamples.cs`](TronDotNet.Tests/ContextApiExamples.cs) and [`BufferApiExamples.cs`](TronDotNet.Tests/BufferApiExamples.cs) for more examples.
+See [`ContextApiExamples.cs`](Lite3.Tests/ContextApiExamples.cs) and [`BufferApiExamples.cs`](Lite3.Tests/BufferApiExamples.cs) for more examples.
 
 ## Attribution
 
-This project is a C# port of the original TRON (Lite³) C implementation by Elias de Jong.
+This project is a C# port of the original Lite³ C implementation by Elias de Jong.
 All credit for the original design belongs to the original authors.

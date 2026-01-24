@@ -6,11 +6,11 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         
-        <PackageId>Tron.Lite3</PackageId>
+        <PackageId>Lite3.Net</PackageId>
         <Authors>Anders Storhaug</Authors>
-        <Description>C# port of TRON (Lite³).</Description>
+        <Description>C# port of Lite³.</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <RepositoryUrl>https://github.com/andersstorhaug/Tron-DotNet</RepositoryUrl>
+        <RepositoryUrl>https://github.com/andersstorhaug/Lite3-DotNet</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\TronDotNet.Generators\TronDotNet.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\Lite3.Generators\Lite3.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>

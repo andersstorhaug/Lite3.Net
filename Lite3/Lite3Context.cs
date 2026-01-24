@@ -1,9 +1,9 @@
 using System.Buffers;
 using System.Numerics;
 
-namespace TronDotNet;
+namespace Lite3;
 
-public ref struct TronContext
+public ref struct Lite3Context
 {
     /// <summary>
     ///     <para>Create a context, optionally with a custom size.</para>
@@ -19,13 +19,13 @@ public ref struct TronContext
     /// <remarks>
     ///     <em>Ported from C <c>lite3_ctx_create_with_size</c> and <c>lite3_ctx_create</c></em>
     /// </remarks>
-    public static TronContext Create(int initialCapacity = TronBuffer.MinBufferSize, ArrayPool<byte>? arrayPool = null)
+    public static Lite3Context Create(int initialCapacity = Lite3Buffer.MinBufferSize, ArrayPool<byte>? arrayPool = null)
     {
         arrayPool ??= ArrayPool<byte>.Shared;
         
         var buffer = arrayPool.Rent(initialCapacity);
         
-        return new  TronContext(buffer, position: 0, isRentedBuffer: true, arrayPool);
+        return new  Lite3Context(buffer, position: 0, isRentedBuffer: true, arrayPool);
     }
 
     /// <summary>
@@ -40,25 +40,25 @@ public ref struct TronContext
     /// <remarks>
     ///     <em>Ported from C <c>lite3_ctx_create_from_buf</c>.</em>
     /// </remarks>
-    public static TronContext CreateFrom(ReadOnlySpan<byte> buffer, int position, ArrayPool<byte>? arrayPool = null)
+    public static Lite3Context CreateFrom(ReadOnlySpan<byte> buffer, int position, ArrayPool<byte>? arrayPool = null)
     {
         arrayPool ??= ArrayPool<byte>.Shared;
         
         if (buffer.Length == 0)
             throw new ArgumentException("Buffer is empty.", nameof(buffer));
 
-        var neededSize = checked((uint)buffer.Length + Lite3.NodeAlignmentMask);
+        var neededSize = checked((uint)buffer.Length + Lite3Core.NodeAlignmentMask);
         var newSize = BitOperations.RoundUpToPowerOf2(neededSize);
-        newSize = Math.Clamp(newSize, TronBuffer.MinBufferSize, TronBuffer.MaxBufferSize);
+        newSize = Math.Clamp(newSize, Lite3Buffer.MinBufferSize, Lite3Buffer.MaxBufferSize);
         
-        if (buffer.Length > newSize - Lite3.NodeAlignmentMask)
+        if (buffer.Length > newSize - Lite3Core.NodeAlignmentMask)
             throw new ArgumentException("Buffer is too large.", nameof(buffer));
         
         var newBuffer = arrayPool.Rent((int)newSize);
         
         buffer.CopyTo(newBuffer);
         
-        return new TronContext(newBuffer, position, isRentedBuffer: true, arrayPool: arrayPool);
+        return new Lite3Context(newBuffer, position, isRentedBuffer: true, arrayPool: arrayPool);
     }
 
     /// <summary>
@@ -80,10 +80,10 @@ public ref struct TronContext
     ///     <para><b>Warning</b>: the array pool needs to be what was used to obtain the original buffer.</para>
     ///     <para>Ported from C <em>lite3_ctx_create_take_ownership</em>.</para>
     /// </remarks>
-    public static TronContext CreateFromOwned(byte[] buffer, int position, ArrayPool<byte>? arrayPool = null)
+    public static Lite3Context CreateFromOwned(byte[] buffer, int position, ArrayPool<byte>? arrayPool = null)
     {
         arrayPool ??= ArrayPool<byte>.Shared;
-        return new TronContext(buffer, position, isRentedBuffer: true, arrayPool);
+        return new Lite3Context(buffer, position, isRentedBuffer: true, arrayPool);
     }
 
     private readonly Scope _scope;
@@ -91,7 +91,7 @@ public ref struct TronContext
     public Span<byte> Buffer;
     public int Position;
 
-    private TronContext(byte[] buffer, int position, bool isRentedBuffer, ArrayPool<byte> arrayPool)
+    private Lite3Context(byte[] buffer, int position, bool isRentedBuffer, ArrayPool<byte> arrayPool)
     {
         _scope = new Scope(buffer, isRentedBuffer, arrayPool);
         
@@ -103,9 +103,9 @@ public ref struct TronContext
     
     public Span<byte> WrittenBuffer => Buffer[..Position];
 
-    internal Lite3.Status Grow()
+    internal Lite3Core.Status Grow()
     {
-        var status = TronBuffer.Grow(_scope.ArrayPool, _scope.IsRentedBuffer, _scope.Buffer, out _scope.Buffer);
+        var status = Lite3Buffer.Grow(_scope.ArrayPool, _scope.IsRentedBuffer, _scope.Buffer, out _scope.Buffer);
         
         _scope.IsRentedBuffer = true;
         
