@@ -1110,6 +1110,27 @@ public static unsafe partial class Lite3Core
     }
 
     /// <summary>
+    ///     Get the root type of the message buffer.
+    /// </summary>
+    /// <param name="buffer">The message buffer.</param>
+    /// <returns>The value type on success; otherwise <see cref="ValueKind.Invalid" />.</returns>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_root_type</c>.</em>
+    /// </remarks>
+    [Lite3Api(IsTryPattern = false)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueKind GetRootType(ReadOnlySpan<byte> buffer)
+    {
+        if (VerifyGet(buffer, 0) < 0)
+            return ValueKind.Invalid;
+        
+        var result = (ValueKind)buffer[0];
+        
+        // C#: buffers are initialized with 0
+        return result > 0 ? result : ValueKind.Invalid;
+    }
+
+    /// <summary>
     ///     Find array value by index and return type.
     /// </summary>
     /// <param name="buffer">The message buffer.</param>
