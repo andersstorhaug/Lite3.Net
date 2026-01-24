@@ -2,10 +2,10 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
-using Lite3.Generators;
+using Lite3DotNet.Generators;
 using Microsoft.Extensions.Logging;
 
-namespace Lite3;
+namespace Lite3DotNet;
 
 public static unsafe partial class Lite3Core
 {
@@ -283,7 +283,7 @@ public static unsafe partial class Lite3Core
                     }
                     if (++nodeWalks > TreeHeightMax)
                     {
-                        _logger.LogError("NODE WALKS EXCEEDED Lite3.TreeHeightMax");
+                        _logger.LogError("NODE WALKS EXCEEDED Lite3DotNet.TreeHeightMax");
                         return Status.NodeWalksExceededTreeHeightMax;
                     }
                 }
@@ -294,7 +294,7 @@ public static unsafe partial class Lite3Core
                 }
             }
         }
-        _logger.LogError("Lite3.HashProbeMax LIMIT REACHED");
+        _logger.LogError("Lite3DotNet.HashProbeMax LIMIT REACHED");
         return Status.HashProbeLimitReached;
     }
     
@@ -337,7 +337,7 @@ public static unsafe partial class Lite3Core
             node = GetNodePtr(buffer, nextNodeOffset);
             if (++iterator.Depth > TreeHeightMax)
             {
-                _logger.LogError("NODE WALKS EXCEEDED Lite3.TreeHeightMax");
+                _logger.LogError("NODE WALKS EXCEEDED Lite3DotNet.TreeHeightMax");
                 return Status.NodeWalksExceededTreeHeightMax;
             }
             if (nextNodeOffset > buffer.Length - NodeSize)
@@ -467,7 +467,7 @@ public static unsafe partial class Lite3Core
             node = GetNodePtr(buffer, (int)nextNodeOffset);
             if (++iterator.Depth > TreeHeightMax)
             {
-                _logger.LogError("NODE WALKS EXCEEDED Lite3.TreeHeightMax");
+                _logger.LogError("NODE WALKS EXCEEDED Lite3DotNet.TreeHeightMax");
                 return Status.NodeWalksExceededTreeHeightMax;
             }
             if (nextNodeOffset > buffer.Length - NodeSize)
@@ -559,7 +559,7 @@ public static unsafe partial class Lite3Core
         
         if (buffer.Length < NodeSize)
         {
-            _logger.LogError("INVALID ARGUMENT: buf.Length < Lite3.NodeSize");
+            _logger.LogError("INVALID ARGUMENT: buf.Length < Lite3DotNet.NodeSize");
             return Status.InsufficientBuffer;
         }
         InitializeImpl(buffer, 0, ValueKind.Object);
@@ -590,7 +590,7 @@ public static unsafe partial class Lite3Core
         
         if (buffer.Length < NodeSize)
         {
-            _logger.LogError("INVALID ARGUMENT: buf.Length < Lite3.NodeSize");
+            _logger.LogError("INVALID ARGUMENT: buf.Length < Lite3DotNet.NodeSize");
             return Status.InsufficientBuffer;
         }
         InitializeImpl(buffer, 0, ValueKind.Array);

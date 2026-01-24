@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 
-namespace Lite3;
+namespace Lite3DotNet;
 
 public static class Lite3Buffer
 {

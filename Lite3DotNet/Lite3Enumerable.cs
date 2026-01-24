@@ -1,4 +1,4 @@
-namespace Lite3;
+namespace Lite3DotNet;
 
 using static Lite3Core;
 

@@ -2,9 +2,8 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
-using static Lite3.Lite3Core;
 
-namespace Lite3.SystemTextJson;
+namespace Lite3DotNet.SystemTextJson;
 
 public static class Lite3JsonEncoder
 {
@@ -19,7 +18,7 @@ public static class Lite3JsonEncoder
     {
         var jsonWriter = new Utf8JsonWriter(writer, options);
 
-        Status status;
+        Lite3Core.Status status;
         if ((status = EncodeDocument(buffer, offset, ref jsonWriter)) < 0)
             throw status.AsException();
         
@@ -44,7 +43,7 @@ public static class Lite3JsonEncoder
     {
         var jsonWriter = new Utf8JsonWriter(writer, options);
 
-        Status status;
+        Lite3Core.Status status;
         return (status = EncodeDocument(buffer, offset, ref jsonWriter)) < 0
             ? throw status.AsException()
             : writer.FlushAsync(cancellationToken);
@@ -62,7 +61,7 @@ public static class Lite3JsonEncoder
         var writer = new ArrayBufferWriter<byte>();
         var jsonWriter = new Utf8JsonWriter(writer, options);
 
-        Status status;
+        Lite3Core.Status status;
         if ((status = EncodeDocument(buffer, offset, ref jsonWriter)) < 0)
             throw status.AsException();
         
@@ -71,57 +70,57 @@ public static class Lite3JsonEncoder
         return Encoding.UTF8.GetString(writer.WrittenSpan);
     }
     
-    private static Status EncodeSwitch(ReadOnlySpan<byte> buffer, int nestingDepth, ReadOnlyValueEntry value, ref Utf8JsonWriter writer)
+    private static Lite3Core.Status EncodeSwitch(ReadOnlySpan<byte> buffer, int nestingDepth, Lite3Core.ReadOnlyValueEntry value, ref Utf8JsonWriter writer)
     {
-        Status status;
+        Lite3Core.Status status;
         
-        switch (GetValueKind(value))
+        switch (Lite3Core.GetValueKind(value))
         {
-            case ValueKind.Null:
+            case Lite3Core.ValueKind.Null:
                 writer.WriteNullValue();
                 break;
-            case ValueKind.Bool:
+            case Lite3Core.ValueKind.Bool:
                 writer.WriteBooleanValue(value.GetBool());
                 break;
-            case ValueKind.I64:
+            case Lite3Core.ValueKind.I64:
                 writer.WriteNumberValue(value.GetLong());
                 break;
-            case ValueKind.F64:
+            case Lite3Core.ValueKind.F64:
                 writer.WriteNumberValue(value.GetDouble());
                 break;
-            case ValueKind.Bytes:
+            case Lite3Core.ValueKind.Bytes:
                 writer.WriteBase64StringValue(value.GetBytes());
                 break;
-            case ValueKind.String:
+            case Lite3Core.ValueKind.String:
                 writer.WriteStringValue(value.GetUtf8());
                 break;
-            case ValueKind.Object:
+            case Lite3Core.ValueKind.Object:
                 if ((status = EncodeObject(buffer, value.Offset, nestingDepth, ref writer)) < 0)
                     return status;
                 break;
-            case ValueKind.Array:
+            case Lite3Core.ValueKind.Array:
                 if ((status = EncodeArray(buffer, value.Offset, nestingDepth, ref writer)) < 0)
                     return status;
                 break;
             default:
-                return Status.ExpectedJsonValue;
+                return Lite3Core.Status.ExpectedJsonValue;
         }
 
         return 0;
     }
 
-    private static Status EncodeObject(ReadOnlySpan<byte> buffer, int offset, int nestingDepth, ref Utf8JsonWriter writer)
+    private static Lite3Core.Status EncodeObject(ReadOnlySpan<byte> buffer, int offset, int nestingDepth, ref Utf8JsonWriter writer)
     {
         if (++nestingDepth > JsonConstants.NestingDepthMax)
-            return Status.JsonNestingDepthExceededMax;
+            return Lite3Core.Status.JsonNestingDepthExceededMax;
         
         writer.WriteStartObject();
         
-        foreach (var entry in global::Lite3.Lite3.Enumerate(buffer, offset))
+        foreach (var entry in Lite3.Enumerate(buffer, offset))
         {
             writer.WritePropertyName(entry.Key.GetUtf8Value(buffer));
 
-            Status status;
+            Lite3Core.Status status;
             if ((status = EncodeSwitch(buffer, nestingDepth, entry.GetValue(), ref writer)) < 0)
                 return status;
         }
@@ -130,16 +129,16 @@ public static class Lite3JsonEncoder
         return 0;
     }
 
-    private static Status EncodeArray(ReadOnlySpan<byte> buffer, int offset, int nestingDepth, ref Utf8JsonWriter writer)
+    private static Lite3Core.Status EncodeArray(ReadOnlySpan<byte> buffer, int offset, int nestingDepth, ref Utf8JsonWriter writer)
     {
         if (++nestingDepth > JsonConstants.NestingDepthMax)
-            return Status.JsonNestingDepthExceededMax;
+            return Lite3Core.Status.JsonNestingDepthExceededMax;
         
         writer.WriteStartArray();
 
-        foreach (var entry in global::Lite3.Lite3.Enumerate(buffer, offset, withKey: false))
+        foreach (var entry in Lite3.Enumerate(buffer, offset, withKey: false))
         {
-            Status status;
+            Lite3Core.Status status;
             if ((status = EncodeSwitch(buffer, nestingDepth, entry.GetValue(), ref writer)) < 0)
                 return status;
         }
@@ -148,25 +147,25 @@ public static class Lite3JsonEncoder
         return 0;
     }
 
-    private static Status EncodeDocument(ReadOnlySpan<byte> buffer, int offset, ref Utf8JsonWriter writer)
+    private static Lite3Core.Status EncodeDocument(ReadOnlySpan<byte> buffer, int offset, ref Utf8JsonWriter writer)
     {
-        Status status;
+        Lite3Core.Status status;
         
-        if ((status = VerifyGet(buffer, offset)) < 0)
+        if ((status = Lite3Core.VerifyGet(buffer, offset)) < 0)
             return status;
         
-        switch ((ValueKind)buffer[offset])
+        switch ((Lite3Core.ValueKind)buffer[offset])
         {
-            case ValueKind.Object:
+            case Lite3Core.ValueKind.Object:
                 if ((status = EncodeObject(buffer, offset, nestingDepth: 0, ref writer)) < 0)
                     return status;
                 break;
-            case ValueKind.Array:
+            case Lite3Core.ValueKind.Array:
                 if ((status = EncodeArray(buffer, offset, nestingDepth: 0, ref writer)) < 0)
                     return status;
                 break;
             default:
-                return Status.ExpectedJsonArrayOrObject;
+                return Lite3Core.Status.ExpectedJsonArrayOrObject;
         }
 
         return 0;

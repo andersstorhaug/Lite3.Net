@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace Lite3.SystemTextJson;
+namespace Lite3DotNet.SystemTextJson;
 
 public static class Lite3JsonDecoder
 {

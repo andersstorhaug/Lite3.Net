@@ -1,4 +1,4 @@
-namespace Lite3.Tests;
+namespace Lite3DotNet.Tests;
 
 /// <remarks>
 /// Ported from <c>collisions.c</c>.

@@ -1,10 +1,10 @@
 using System.Text;
-using Lite3.Generators.Text;
+using Lite3DotNet.Generators.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using static Lite3.Generators.Lite3ApiGenerator.AttributeProperty;
+using static Lite3DotNet.Generators.Lite3ApiGenerator.AttributeProperty;
 
-namespace Lite3.Generators;
+namespace Lite3DotNet.Generators;
 
 [Generator]
 public class Lite3ApiGenerator : IIncrementalGenerator
@@ -23,7 +23,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         ContextTypeName = "Lite3Context",
         ContextExtensionsTypeName = $"{ContextTypeName}Extensions",
         CoreMethodPrefix = $"{CoreTypeName}.",
-        CoreNamespace = $"{nameof(Lite3)}",
+        CoreNamespace = $"{nameof(Lite3DotNet)}",
         AttributeNamespace = $"{CoreNamespace}.{nameof(Generators)}",
         AttributeName = "Lite3ApiAttribute",
         AttributeTypeMetadataName = $"{AttributeNamespace}.{AttributeName}",
@@ -133,7 +133,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                 primarySource.AppendLine("}");
                 contextSource.AppendLine("}");
                 
-                context.AddSource($"Lite3.g.cs", primarySource.ToString());
+                context.AddSource($"Lite3DotNet.g.cs", primarySource.ToString());
                 context.AddSource($"Lite3ContextExtensions.g.cs", contextSource.ToString());
             }
         );

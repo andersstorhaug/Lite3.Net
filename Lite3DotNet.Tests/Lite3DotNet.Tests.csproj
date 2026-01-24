@@ -21,8 +21,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Lite3.SystemTextJson\Lite3.SystemTextJson.csproj" />
-      <ProjectReference Include="..\Lite3\Lite3.csproj" />
+      <ProjectReference Include="..\Lite3DotNet.SystemTextJson\Lite3DotNet.SystemTextJson.csproj" />
+      <ProjectReference Include="..\Lite3DotNet\Lite3DotNet.csproj" />
     </ItemGroup>
 
     <ItemGroup>

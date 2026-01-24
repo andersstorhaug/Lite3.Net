@@ -4,22 +4,26 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-
-        <PackageId>Lite3.Net.SystemTextJson</PackageId>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        
+        <PackageId>Lite3.Net</PackageId>
         <Authors>Anders Storhaug</Authors>
-        <Description>JSON Encoding for Lite³</Description>
+        <Description>C# port of Lite³.</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/andersstorhaug/Lite3.DotNet</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
-
+    
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\" />
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Lite3\Lite3.csproj" />
+        <ProjectReference Include="..\Lite3DotNet.Generators\Lite3DotNet.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+    </ItemGroup>
 </Project>

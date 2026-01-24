@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Lite3;
+namespace Lite3DotNet;
 
 public static partial class Lite3
 {

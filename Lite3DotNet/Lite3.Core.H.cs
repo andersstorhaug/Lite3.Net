@@ -1,11 +1,11 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Lite3.Generators;
+using Lite3DotNet.Generators;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Lite3;
+namespace Lite3DotNet;
 
 public static unsafe partial class Lite3Core
 {

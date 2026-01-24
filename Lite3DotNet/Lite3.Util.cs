@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Lite3;
+namespace Lite3DotNet;
 
 public static unsafe partial class Lite3Core
 {

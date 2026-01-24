@@ -2,11 +2,11 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
-using Lite3.SystemTextJson;
+using Lite3DotNet.SystemTextJson;
 using Xunit.Abstractions;
-using static Lite3.Lite3Core;
+using static Lite3DotNet.Lite3Core;
 
-namespace Lite3.Tests;
+namespace Lite3DotNet.Tests;
 
 /// <remarks>
 ///     Ported from C <c>context_api</c> examples.

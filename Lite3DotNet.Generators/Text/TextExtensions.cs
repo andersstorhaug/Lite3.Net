@@ -1,4 +1,4 @@
-namespace Lite3.Generators.Text;
+namespace Lite3DotNet.Generators.Text;
 
 public static class TextExtensions
 {

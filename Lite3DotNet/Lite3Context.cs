@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Numerics;
 
-namespace Lite3;
+namespace Lite3DotNet;
 
 public ref struct Lite3Context
 {

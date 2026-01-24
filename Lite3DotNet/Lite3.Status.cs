@@ -1,4 +1,4 @@
-namespace Lite3;
+namespace Lite3DotNet;
 
 public static partial class Lite3Core
 {
