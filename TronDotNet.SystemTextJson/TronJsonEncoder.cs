@@ -96,11 +96,11 @@ public static class TronJsonEncoder
                 writer.WriteStringValue(value.GetUtf8());
                 break;
             case ValueKind.Object:
-                if ((status = EncodeObject(buffer, value.TypeOffset, nestingDepth, ref writer)) < 0)
+                if ((status = EncodeObject(buffer, value.Offset, nestingDepth, ref writer)) < 0)
                     return status;
                 break;
             case ValueKind.Array:
-                if ((status = EncodeArray(buffer, value.TypeOffset, nestingDepth, ref writer)) < 0)
+                if ((status = EncodeArray(buffer, value.Offset, nestingDepth, ref writer)) < 0)
                     return status;
                 break;
             default:

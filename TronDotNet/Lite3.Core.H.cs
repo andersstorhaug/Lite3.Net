@@ -101,8 +101,8 @@ public static unsafe partial class Lite3
     public readonly ref struct ReadOnlyValueEntry(ReadOnlySpan<byte> buffer, int startOffset)
     {
         private readonly ReadOnlySpan<byte> _buffer = buffer;
-        internal byte Type => _buffer[TypeOffset];
-        public readonly int TypeOffset = startOffset;
+        internal byte Type => _buffer[Offset];
+        public readonly int Offset = startOffset;
         internal readonly int ValueOffset = startOffset + ValueSize;
         internal ReadOnlySpan<byte> Value => _buffer[ValueOffset..];
     }
@@ -118,7 +118,7 @@ public static unsafe partial class Lite3
     private const int ValueSize = 1;
     
     /// <remarks><em>Ported from C <c>lite3_type_sizes</c>.</em></remarks>
-    private static readonly int[] ValueKindSizes =
+    internal static readonly int[] ValueKindSizes =
     [
         0, // Null
         1, // Bool
@@ -1062,7 +1062,7 @@ public static unsafe partial class Lite3
     /// </remarks>
     [TronApi(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Status GetValueKindSize(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out uint value)
+    public static Status GetValueSize(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out uint value)
     {
         Status status;
         value = 0;
@@ -1469,7 +1469,7 @@ public static unsafe partial class Lite3
         }
         
         value = new BytesEntry(
-            BinaryPrimitives.ReadUInt32LittleEndian(buffer[entry.TypeOffset..]),
+            BinaryPrimitives.ReadUInt32LittleEndian(buffer[entry.Offset..]),
             (int)BinaryPrimitives.ReadUInt32LittleEndian(buffer[entry.ValueOffset..]),
             entry.ValueOffset
         );
@@ -1544,7 +1544,7 @@ public static unsafe partial class Lite3
             return Status.ValueKindDoesNotMatch;
         }
         
-        objectOffset = entry.TypeOffset;
+        objectOffset = entry.Offset;
         return 0;
     }
 
@@ -1577,7 +1577,7 @@ public static unsafe partial class Lite3
             return Status.ValueKindDoesNotMatch;
         }
         
-        arrayOffset = entry.TypeOffset;
+        arrayOffset = entry.Offset;
         return 0;
     }
     
@@ -1760,7 +1760,7 @@ public static unsafe partial class Lite3
             return Status.ValueKindDoesNotMatch;
         }
         
-        objectOffset = entry.TypeOffset;
+        objectOffset = entry.Offset;
         return 0;
     }
 
@@ -1789,7 +1789,7 @@ public static unsafe partial class Lite3
             return Status.ValueKindDoesNotMatch;
         }
         
-        arrayOffset = entry.TypeOffset;
+        arrayOffset = entry.Offset;
         return 0;
     }
     
@@ -1852,7 +1852,7 @@ public static unsafe partial class Lite3
     /// </remarks>
     [TronApi(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int GetValueKindSize(in ReadOnlyValueEntry entry)
+    internal static int GetValueSize(in ReadOnlyValueEntry entry)
     {
         var type = (ValueKind)entry.Type;
         

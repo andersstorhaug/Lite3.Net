@@ -106,7 +106,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         if (priceValue.GetValueKind() == ValueKind.F64)
         {
             output.WriteLine($"price value: {priceValue.GetDouble()}");
-            output.WriteLine($"price value type size: {priceValue.GetValueKindSize()}");
+            output.WriteLine($"price value type size: {priceValue.GetValueSize()}");
         }
 
         var entryCount = Tron.GetCount(buffer, 0);

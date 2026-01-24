@@ -101,10 +101,13 @@ public static partial class Tron
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Lite3.ValueKind GetValueKind() => Lite3.GetValueKind(value);
 
-        /// <inheritdoc cref="Lite3.GetValueKindSize" />
+        /// <inheritdoc cref="Lite3.GetValueSize" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetValueKindSize() => Lite3.GetValueKindSize(value);
-
+        public int GetValueSize() => Lite3.GetValueSize(value);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetSize() => Lite3.ValueKindSizes[value.Type] + Lite3.GetValueSize(value);
+        
         /// <inheritdoc cref="Lite3.ValueIsNull" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsNull() => Lite3.ValueIsNull(value);
