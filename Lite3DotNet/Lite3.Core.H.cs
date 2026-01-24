@@ -1091,24 +1091,6 @@ public static unsafe partial class Lite3Core
         return GetImpl(buffer, offset, key: default, keyData, out value);
     }
 
-    /// <summary>Find value by key and return value type.</summary>
-    /// <returns>The value type on success; otherwise <see cref="ValueKind.Invalid" />.</returns>
-    /// <remarks>
-    ///     <em>Ported from C <c>lite3_get_type</c>.</em>
-    /// </remarks>
-    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ValueKind GetValueKind(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
-    {
-        if (VerifyObjectGet(buffer, offset) < 0)
-            return ValueKind.Invalid;
-        
-        if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
-            return ValueKind.Invalid;
-        
-        return entry.Type;
-    }
-
     /// <summary>
     ///     Get the root type of the message buffer.
     /// </summary>
@@ -1130,8 +1112,26 @@ public static unsafe partial class Lite3Core
         return result > 0 ? result : ValueKind.Invalid;
     }
 
+    /// <summary>Find value by key and return value type.</summary>
+    /// <returns>The value type on success; otherwise <see cref="ValueKind.Invalid" />.</returns>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_type</c>.</em>
+    /// </remarks>
+    [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueKind GetValueKind(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
+    {
+        if (VerifyObjectGet(buffer, offset) < 0)
+            return ValueKind.Invalid;
+        
+        if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
+            return ValueKind.Invalid;
+        
+        return entry.Type;
+    }
+
     /// <summary>
-    ///     Find array value by index and return type.
+    ///     Find array value by index and return value type.
     /// </summary>
     /// <param name="buffer">The message buffer.</param>
     /// <param name="offset">The start offset; 0 for root.</param>
