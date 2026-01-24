@@ -53,6 +53,7 @@ var context = Lite3Context.Create();
 using var scope = context.BeginScope();
 
 context
+    .InitializeObject()
     .SetString(0, "app_name"u8, "demo_app"u8)
     .SetLong(0, "max_retries"u8, 3)
     .SetBool(0, "debug_mode"u8, false);
