@@ -101,7 +101,7 @@ public static unsafe partial class Lite3
     public readonly ref struct ReadOnlyValueEntry(ReadOnlySpan<byte> buffer, int startOffset)
     {
         private readonly ReadOnlySpan<byte> _buffer = buffer;
-        internal byte Type => _buffer[Offset];
+        internal ValueKind Type => (ValueKind)_buffer[Offset];
         public readonly int Offset = startOffset;
         internal readonly int ValueOffset = startOffset + ValueSize;
         internal ReadOnlySpan<byte> Value => _buffer[ValueOffset..];
@@ -1041,7 +1041,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return ValueKind.Invalid;
         
-        return (ValueKind)entry.Type;
+        return entry.Type;
     }
 
     /// <summary>
@@ -1073,7 +1073,7 @@ public static unsafe partial class Lite3
         if ((GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
             return status;
         
-        var valueKind = (ValueKind)entry.Type;
+        var valueKind = entry.Type;
         if (valueKind is ValueKind.String or ValueKind.Bytes)
         {
             value = BinaryPrimitives.ReadUInt32LittleEndian(buffer[entry.ValueOffset..]);
@@ -1152,7 +1152,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.Null;
+        return entry.Type == ValueKind.Null;
     }
 
     /// <summary>
@@ -1174,7 +1174,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.Bool;
+        return entry.Type == ValueKind.Bool;
     }
 
     /// <summary>
@@ -1196,7 +1196,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.I64;
+        return entry.Type == ValueKind.I64;
     }
 
     /// <summary>
@@ -1218,7 +1218,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.F64;
+        return entry.Type == ValueKind.F64;
     }
 
     /// <summary>
@@ -1240,7 +1240,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.Bytes;
+        return entry.Type == ValueKind.Bytes;
     }
 
     /// <summary>
@@ -1262,7 +1262,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.String;
+        return entry.Type == ValueKind.String;
     }
 
     /// <summary>
@@ -1284,7 +1284,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.Object;
+        return entry.Type == ValueKind.Object;
     }
 
     /// <summary>
@@ -1306,7 +1306,7 @@ public static unsafe partial class Lite3
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
             return false;
         
-        return (ValueKind)entry.Type == ValueKind.Array;
+        return entry.Type == ValueKind.Array;
     }
 
     /// <summary>
@@ -1363,7 +1363,7 @@ public static unsafe partial class Lite3
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Bool)
+        if (entry.Type != ValueKind.Bool)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_BOOL");
             return Status.ValueKindDoesNotMatch;
@@ -1396,7 +1396,7 @@ public static unsafe partial class Lite3
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.I64)
+        if (entry.Type != ValueKind.I64)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_I64");
             return Status.ValueKindDoesNotMatch;
@@ -1429,7 +1429,7 @@ public static unsafe partial class Lite3
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.F64)
+        if (entry.Type != ValueKind.F64)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_F64");
             return Status.ValueKindDoesNotMatch;
@@ -1462,7 +1462,7 @@ public static unsafe partial class Lite3
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Bytes)
+        if (entry.Type != ValueKind.Bytes)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_BYTES");
             return Status.ValueKindDoesNotMatch;
@@ -1499,7 +1499,7 @@ public static unsafe partial class Lite3
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.String)
+        if (entry.Type != ValueKind.String)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_STRING");
             return Status.ValueKindDoesNotMatch;
@@ -1538,7 +1538,7 @@ public static unsafe partial class Lite3
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Object)
+        if (entry.Type != ValueKind.Object)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_OBJECT");
             return Status.ValueKindDoesNotMatch;
@@ -1571,7 +1571,7 @@ public static unsafe partial class Lite3
         if ((status = GetImpl(buffer, offset, key, keyData,  out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Array)
+        if (entry.Type != ValueKind.Array)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_ARRAY");
             return Status.ValueKindDoesNotMatch;
@@ -1600,7 +1600,7 @@ public static unsafe partial class Lite3
         if ((status = GetByIndex(buffer, offset, index, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Bool)
+        if (entry.Type != ValueKind.Bool)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_BOOL");
             return Status.ValueKindDoesNotMatch;
@@ -1629,7 +1629,7 @@ public static unsafe partial class Lite3
         if ((status = GetByIndex(buffer, offset, index, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.I64)
+        if (entry.Type != ValueKind.I64)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_I64");
             return Status.ValueKindDoesNotMatch;
@@ -1658,7 +1658,7 @@ public static unsafe partial class Lite3
         if ((status = GetByIndex(buffer, offset, index, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.F64)
+        if (entry.Type != ValueKind.F64)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_F64");
             return Status.ValueKindDoesNotMatch;
@@ -1687,7 +1687,7 @@ public static unsafe partial class Lite3
         if ((status = GetByIndex(buffer, offset, index, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Bytes)
+        if (entry.Type != ValueKind.Bytes)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_BYTES");
             return Status.ValueKindDoesNotMatch;
@@ -1719,7 +1719,7 @@ public static unsafe partial class Lite3
         if ((status = GetByIndex(buffer, offset, index, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.String)
+        if (entry.Type != ValueKind.String)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_STRING");
             return Status.ValueKindDoesNotMatch;
@@ -1754,7 +1754,7 @@ public static unsafe partial class Lite3
         if ((status = GetByIndex(buffer, offset, index, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Object)
+        if (entry.Type != ValueKind.Object)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_OBJECT");
             return Status.ValueKindDoesNotMatch;
@@ -1783,7 +1783,7 @@ public static unsafe partial class Lite3
         if ((status = GetByIndex(buffer, offset, index, out var entry)) < 0)
             return status;
         
-        if ((ValueKind)entry.Type != ValueKind.Array)
+        if (entry.Type != ValueKind.Array)
         {
             _logger.LogError("VALUE TYPE != LITE3_TYPE_ARRAY");
             return Status.ValueKindDoesNotMatch;
@@ -1831,7 +1831,7 @@ public static unsafe partial class Lite3
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueKind GetValueKind(in ReadOnlyValueEntry entry)
     {
-        var type = (ValueKind)entry.Type;
+        var type = entry.Type;
         return type < ValueKind.Invalid ? type : ValueKind.Invalid;
     }
 
@@ -1854,45 +1854,45 @@ public static unsafe partial class Lite3
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int GetValueSize(in ReadOnlyValueEntry entry)
     {
-        var type = (ValueKind)entry.Type;
+        var type = entry.Type;
         
         if (type is ValueKind.String or ValueKind.Bytes)
             return BinaryPrimitives.ReadInt32LittleEndian(entry.Value);
         
-        return ValueKindSizes[entry.Type];
+        return ValueKindSizes[(int)entry.Type];
     }
     
     /// <remarks><em>Ported from C <c>lite3_val_is_null</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsNull(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.Null;
+    internal static bool ValueIsNull(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Null;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_bool</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsBool(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.Bool;
+    internal static bool ValueIsBool(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Bool;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_i64</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsLong(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.I64;
+    internal static bool ValueIsLong(ReadOnlyValueEntry entry) => entry.Type == ValueKind.I64;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_f64</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsDouble(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.F64;
+    internal static bool ValueIsDouble(ReadOnlyValueEntry entry) => entry.Type == ValueKind.F64;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_bytes</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsBytes(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.Bytes;
+    internal static bool ValueIsBytes(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Bytes;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_str</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsString(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.String;
+    internal static bool ValueIsString(ReadOnlyValueEntry entry) => entry.Type == ValueKind.String;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_obj</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsObject(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.Object;
+    internal static bool ValueIsObject(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Object;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_arr</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsArray(ReadOnlyValueEntry entry) => (ValueKind)entry.Type == ValueKind.Array;
+    internal static bool ValueIsArray(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Array;
 
     /// <remarks><em>Ported from C <c>lite3_val_bool</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
