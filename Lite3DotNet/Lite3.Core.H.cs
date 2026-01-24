@@ -38,7 +38,7 @@ public static unsafe partial class Lite3Core
         public uint Hash;
         public uint Size;
     }
-    
+
     /// <remarks>From <c>lite3_get_key_data</c></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [Lite3Api(IsTryPattern = false)]
@@ -58,7 +58,9 @@ public static unsafe partial class Lite3Core
     /// <summary>
     ///     Custom types of the library. All values are prefixed with a 1-byte type tag, similar to tagged unions.
     /// </summary>
-    /// <remarks><em>Ported from C <c>lite3_types</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_types</c>.</em>
+    /// </remarks>
     public enum ValueKind : byte
     {
         /// <summary>Maps to JSON <c>null</c>.</summary>
@@ -91,13 +93,15 @@ public static unsafe partial class Lite3Core
         /// <summary>Not an actual type, only used as a marker.</summary>
         InvalidMarker
     }
-    
+
     /// <summary>
     ///     <para>Represents a value inside a message buffer.</para>
     ///     <para>All values are prefixed with a 1-byte type tag, similar to tagged unions.</para>
     ///     <para>To discover types inside a message, compare against <see cref="ValueEntry.Type" /></para>
     /// </summary>
-    /// <remarks><em>Ported from C <c>lite3_val</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_val</c>.</em>
+    /// </remarks>
     public readonly ref struct ReadOnlyValueEntry(ReadOnlySpan<byte> buffer, int offset)
     {
         private readonly ReadOnlySpan<byte> _buffer = buffer;
@@ -143,7 +147,9 @@ public static unsafe partial class Lite3Core
     /// </summary>
     /// <remarks>
     ///     <para>Never use the offset against the buffer directly! Always use <c>GetBytes</c> for safe access!</para>
-    ///     <para><em>Ported from C <c>lite3_bytes</c>.</em></para>
+    ///     <para>
+    ///         <em>Ported from C <c>lite3_bytes</c>.</em>
+    ///     </para>
     /// </remarks>
     public ref struct BytesEntry(uint gen, int length, int offset)
     {
@@ -158,15 +164,20 @@ public static unsafe partial class Lite3Core
     }
 
     internal const int BytesLengthSize = sizeof(int);
-    
+
     /// <summary>
     ///     <para>Holds a reference to a string value inside a message buffer.</para>
     ///     <para>Returned by <see cref="Lite3Core.GetString" />.</para>
     ///     <para>Buffers store an internal "generation count"; any mutations to the buffer will increment the count.</para>
     /// </summary>
     /// <remarks>
-    ///     <para>Never use the offset against the buffer directly! Always use <see cref="Lite3Core.GetUtf8Value" /> for safe access!</para>
-    ///     <para><em>Ported from C <c>lite3_str</c>.</em></para>
+    ///     <para>
+    ///         Never use the offset against the buffer directly! Always use <see cref="Lite3Core.GetUtf8Value" /> for safe
+    ///         access!
+    ///     </para>
+    ///     <para>
+    ///         <em>Ported from C <c>lite3_str</c>.</em>
+    ///     </para>
     /// </remarks>
     public struct StringEntry(uint gen, int length, int offset)
     {
@@ -181,7 +192,7 @@ public static unsafe partial class Lite3Core
     }
     
     internal const int StringLengthSize = sizeof(int);
-    
+
     /// <summary>
     ///     <para>Generational safe access wrapper.</para>
     ///     <para>
@@ -196,10 +207,12 @@ public static unsafe partial class Lite3Core
     ///     </para>
     /// </summary>
     /// <param name="buffer">The message buffer.</param>
-    /// <param name="value">The <see cref="BytesEntry"/> entry.</param>
+    /// <param name="value">The <see cref="BytesEntry" /> entry.</param>
     /// <param name="result">On success, the value bytes; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>LITE3_BYTES</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>LITE3_BYTES</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(result))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetBytes(ReadOnlySpan<byte> buffer, BytesEntry value, out ReadOnlySpan<byte> result)
@@ -213,7 +226,7 @@ public static unsafe partial class Lite3Core
         result = default;
         return Status.MutatedBuffer;
     }
-    
+
     /// <summary>
     ///     <para>Generational safe access wrapper.</para>
     ///     <para>
@@ -228,10 +241,12 @@ public static unsafe partial class Lite3Core
     ///     </para>
     /// </summary>
     /// <param name="buffer">The message buffer.</param>
-    /// <param name="value">The <see cref="BytesEntry"/> entry.</param>
+    /// <param name="value">The <see cref="BytesEntry" /> entry.</param>
     /// <param name="result">On success, the UTF-8 string bytes; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>LITE3_STR</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>LITE3_STR</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(result))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetUtf8Value(ReadOnlySpan<byte> buffer, StringEntry value, out ReadOnlySpan<byte> result)
@@ -297,7 +312,7 @@ public static unsafe partial class Lite3Core
         
         return 0;
     }
-    
+
     /// <summary>
     ///     Set null in object.
     /// </summary>
@@ -307,7 +322,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8 string.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_null</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_null</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetNull(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -334,7 +351,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_bool</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_bool</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetBool(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, bool value)
@@ -351,7 +370,7 @@ public static unsafe partial class Lite3Core
         entry.Value[0] = value ? (byte)1 : (byte)0;
         return 0;
     }
-    
+
     /// <summary>
     ///     Set integer in object.
     /// </summary>
@@ -362,7 +381,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_i64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_i64</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetLong(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, long value)
@@ -390,7 +411,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_f64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_f64</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetDouble(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, double value)
@@ -418,7 +441,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">The value UTF8 string.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_bytes</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_bytes</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetBytes(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, ReadOnlySpan<byte> value)
@@ -436,7 +461,7 @@ public static unsafe partial class Lite3Core
         value.CopyTo(entry.Value.Slice(ValueKindSizes[(int)ValueKind.Bytes], value.Length));
         return 0;
     }
-    
+
     /// <summary>
     ///     Set string in object.
     /// </summary>
@@ -447,7 +472,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_str</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_str</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetString(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, in KeyData keyData, ReadOnlySpan<byte> value)
@@ -481,7 +508,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="objectOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_obj</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_obj</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetObject(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int objectOffset)
@@ -494,7 +523,7 @@ public static unsafe partial class Lite3Core
         
         return SetObjectImpl(buffer, ref position, offset, key, keyData, out objectOffset);
     }
-    
+
     /// <summary>
     ///     Set array in object.
     /// </summary>
@@ -505,7 +534,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="arrayOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_set_arr</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_set_arr</c>.</em>
+    /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData), ReturnArg = nameof(arrayOffset))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetArray(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int arrayOffset)
@@ -566,7 +597,7 @@ public static unsafe partial class Lite3Core
         
         return SetImpl(buffer, ref position, offset, key: default, keyData, valueLength, out _, out value);
     }
-    
+
     /// <summary>
     ///     Append null to array.
     /// </summary>
@@ -574,7 +605,9 @@ public static unsafe partial class Lite3Core
     /// <param name="position">The current buffer position.</param>
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_null</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_null</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendNull(Span<byte> buffer, ref int position, int offset)
@@ -589,7 +622,7 @@ public static unsafe partial class Lite3Core
         entry.Type = (byte)ValueKind.Null;
         return 0;
     }
-    
+
     /// <summary>
     ///     Append boolean to array.
     /// </summary>
@@ -598,7 +631,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="value">The value to append.</param>
     /// <returns><c>true</c> on success; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_bool</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_bool</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendBool(Span<byte> buffer, ref int position, int offset, bool value)
@@ -614,7 +649,7 @@ public static unsafe partial class Lite3Core
         entry.Value[0] = value ? (byte)1 : (byte)0;
         return 0;
     }
-    
+
     /// <summary>
     ///     Append integer to array.
     /// </summary>
@@ -623,7 +658,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_i64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_i64</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendLong(Span<byte> buffer, ref int position, int offset, long value)
@@ -639,7 +676,7 @@ public static unsafe partial class Lite3Core
         BinaryPrimitives.WriteInt64LittleEndian(entry.Value, value);
         return 0;
     }
-    
+
     /// <summary>
     ///     Append floating point to array.
     /// </summary>
@@ -648,7 +685,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_f64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_f64</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendDouble(Span<byte> buffer, ref int position, int offset, double value)
@@ -664,7 +703,7 @@ public static unsafe partial class Lite3Core
         BinaryPrimitives.WriteDoubleLittleEndian(entry.Value, value);
         return 0;
     }
-    
+
     /// <summary>
     ///     Append bytes to array.
     /// </summary>
@@ -673,7 +712,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_bytes</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_bytes</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendBytes(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> value)
@@ -688,7 +729,7 @@ public static unsafe partial class Lite3Core
         value.CopyTo(entry.Value.Slice(ValueKindSizes[(int)ValueKind.Bytes], value.Length));
         return 0;
     }
-    
+
     /// <summary>
     ///     Append string to array.
     /// </summary>
@@ -697,7 +738,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="value">The value to append.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_str_n</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_str_n</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendString(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> value)
@@ -715,7 +758,7 @@ public static unsafe partial class Lite3Core
         entry.Value[ValueKindSizes[(int)ValueKind.String] + value.Length] = 0x00;
         return 0;
     }
-    
+
     /// <summary>
     ///     Append object to array.
     /// </summary>
@@ -724,7 +767,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="objectOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_obj</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_obj</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendObject(Span<byte> buffer, ref int position, int offset, out int objectOffset)
@@ -737,7 +782,7 @@ public static unsafe partial class Lite3Core
         
         return ArrayAppendObjectImpl(buffer, ref position, offset, out objectOffset);
     }
-    
+
     /// <summary>
     ///     Append array to array.
     /// </summary>
@@ -746,7 +791,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="arrayOffset">The new array start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_append_arr</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_append_arr</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayAppendArray(Span<byte> buffer, ref int position, int offset, out int arrayOffset)
@@ -759,7 +806,7 @@ public static unsafe partial class Lite3Core
         
         return ArrayAppendArrayImpl(buffer, ref position, offset, out arrayOffset);
     }
-    
+
     /// <summary>
     ///     Set null in array.
     /// </summary>
@@ -768,7 +815,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="index">The array index.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_null</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_null</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetNull(Span<byte> buffer, ref int position, int offset, uint index)
@@ -791,7 +840,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_bool</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_bool</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetBool(Span<byte> buffer, ref int position, int offset, uint index, bool value)
@@ -805,7 +856,7 @@ public static unsafe partial class Lite3Core
         entry.Value[0] = value ? (byte)1 : (byte)0;
         return 0;
     }
-    
+
     /// <summary>
     ///     Set integer in array.
     /// </summary>
@@ -815,7 +866,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_i64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_i64</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetLong(Span<byte> buffer, ref int position, int offset, uint index, long value)
@@ -829,7 +882,7 @@ public static unsafe partial class Lite3Core
         BinaryPrimitives.WriteInt64LittleEndian(entry.Value, value);
         return 0;
     }
-    
+
     /// <summary>
     ///     Set floating point in array.
     /// </summary>
@@ -839,7 +892,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_f64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_f64</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetDouble(Span<byte> buffer, ref int position, int offset, uint index, double value)
@@ -863,7 +918,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_bytes</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_bytes</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetBytes(Span<byte> buffer, ref int position, int offset, uint index, ReadOnlySpan<byte> value)
@@ -878,7 +935,7 @@ public static unsafe partial class Lite3Core
         value.CopyTo(entry.Value.Slice(ValueKindSizes[(int)ValueKind.Bytes], value.Length));
         return 0;
     }
-    
+
     /// <summary>
     ///     Set string in array.
     /// </summary>
@@ -888,7 +945,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">The value to set.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_str_n</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_str_n</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetString(Span<byte> buffer, ref int position, int offset, uint index, ReadOnlySpan<byte> value)
@@ -906,7 +965,7 @@ public static unsafe partial class Lite3Core
         entry.Value[ValueKindSizes[(int)ValueKind.String] + value.Length] = 0x00; // Insert NULL-terminator
         return 0;
     }
-    
+
     /// <summary>
     ///     Set object in array.
     /// </summary>
@@ -916,7 +975,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="objectOffset">The new object start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_obj</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_obj</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetObject(Span<byte> buffer, ref int position, int offset, uint index, out int objectOffset)
@@ -929,7 +990,7 @@ public static unsafe partial class Lite3Core
         
         return ArraySetObjectImpl(buffer, ref position, offset, index, out objectOffset);
     }
-    
+
     /// <summary>
     ///     Set array in array.
     /// </summary>
@@ -939,7 +1000,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="arrayOffset">The new array start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_set_arr</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_set_arr</c>.</em>
+    /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArraySetArray(Span<byte> buffer, ref int position, int offset, uint index, out int arrayOffset)
@@ -1030,7 +1093,9 @@ public static unsafe partial class Lite3Core
 
     /// <summary>Find value by key and return value type.</summary>
     /// <returns>The value type on success; otherwise <see cref="ValueKind.Invalid" />.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_type</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_type</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueKind GetValueKind(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1051,7 +1116,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="index">The array index.</param>
     /// <returns>The value type on success; otherwise <see cref="ValueKind.Invalid" />.</returns>
-    /// <remarks><em>Ported from C <c>lite3_ctx_arr_get_type</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_ctx_arr_get_type</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueKind ArrayGetValueKind(ReadOnlySpan<byte> buffer, int offset, uint index)
@@ -1113,7 +1180,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful the key exists or <c>false</c> if not; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_exists</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_exists</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsKey(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1132,7 +1201,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="value">On return, the count if successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_count</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_count</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetCount(ReadOnlySpan<byte> buffer, int offset, out uint value)
@@ -1162,7 +1233,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value is null; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_null</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_null</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNull(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1184,7 +1257,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is bool; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_bool</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_bool</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsBool(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1206,7 +1281,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is integer; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_i64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_i64</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLong(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1228,7 +1305,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is floating point; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_f64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_f64</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDouble(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1250,7 +1329,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is bytes; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_bytes</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_bytes</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsBytes(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1272,7 +1353,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is string; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_str</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_str</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsString(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1294,7 +1377,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is object; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_obj</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_obj</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsObject(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1316,7 +1401,9 @@ public static unsafe partial class Lite3Core
     /// <param name="key">The key UTF8.</param>
     /// <param name="keyData">The key data.</param>
     /// <returns><c>true</c> if successful and the value type is array; otherwise <c>false</c>.</returns>
-    /// <remarks><em>Ported from C <c>lite3_is_arr</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_is_arr</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false, KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsArray(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
@@ -1346,7 +1433,9 @@ public static unsafe partial class Lite3Core
     ///         Instead, it produces a generic `lite3_val` pointer, which points to a value inside the Lite³ buffer.
     ///         This can be useful in cases where you don't know the exact value type beforehand. See @ref lite3_val_fns.
     ///     </para>
-    ///     <para><em>Ported from C <c>lite3_get</c>.</em></para>
+    ///     <para>
+    ///         <em>Ported from C <c>lite3_get</c>.</em>
+    ///     </para>
     /// </remarks>
     [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1370,7 +1459,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">On return, the boolean value when successful; otherwise false.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_bool</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_bool</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetBool(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out bool value)
@@ -1403,7 +1494,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">On return, the integer value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_i64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_i64</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetLong(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out long value)
@@ -1436,7 +1529,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">On return, the floating point value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_f64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_f64</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetDouble(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out double value)
@@ -1469,7 +1564,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="value">On return, the bytes value entry when successful; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_bytes</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_bytes</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Status GetBytes(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out BytesEntry value)
@@ -1506,7 +1603,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData"></param>
     /// <param name="value">On return, the string value entry when successful; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_str_n</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_str_n</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetString(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out StringEntry value)
@@ -1545,7 +1644,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="objectOffset">On return, object start offset value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_obj</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_obj</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(objectOffset), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetObject(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int objectOffset)
@@ -1578,7 +1679,9 @@ public static unsafe partial class Lite3Core
     /// <param name="keyData">The key data.</param>
     /// <param name="arrayOffset">On return, the array start offset when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_arr</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_arr</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(arrayOffset), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status GetArray(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int arrayOffset)
@@ -1601,7 +1704,7 @@ public static unsafe partial class Lite3Core
         arrayOffset = entry.Offset;
         return 0;
     }
-    
+
     /// <summary>
     ///     Get boolean value by index.
     /// </summary>
@@ -1610,7 +1713,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">On return, the boolean value when successful; otherwise false.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_get_bool</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_get_bool</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetBool(ReadOnlySpan<byte> buffer, int offset, uint index, out bool value)
@@ -1630,7 +1735,7 @@ public static unsafe partial class Lite3Core
         value = buffer[entry.ValueOffset] == 1;
         return 0;
     }
-    
+
     /// <summary>
     ///     Get integer value by index.
     /// </summary>
@@ -1639,7 +1744,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">On return, the integer value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_get_i64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_get_i64</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetLong(ReadOnlySpan<byte> buffer, int offset, uint index, out long value)
@@ -1668,7 +1775,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">On return, the floating point value when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_get_f64</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_get_f64</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetDouble(ReadOnlySpan<byte> buffer, int offset, uint index, out double value)
@@ -1697,7 +1806,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">On return, the bytes value entry when successful; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_get_bytes</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_get_bytes</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Status ArrayGetBytes(ReadOnlySpan<byte> buffer, int offset, uint index, out BytesEntry value)
@@ -1729,7 +1840,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="value">On return, the string value entry when successful; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_get_str</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_get_str</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(value))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetString(ReadOnlySpan<byte> buffer, int offset, uint index, out StringEntry value)
@@ -1764,7 +1877,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="objectOffset">On return, the object start offset when successful; otherwise 0.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_get_obj</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_get_obj</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(objectOffset))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetObject(ReadOnlySpan<byte> buffer, int offset, uint index, out int objectOffset)
@@ -1793,7 +1908,9 @@ public static unsafe partial class Lite3Core
     /// <param name="index">The array index.</param>
     /// <param name="arrayOffset">On return, the array start offset when successful; otherwise empty.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_arr_get_arr</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_arr_get_arr</c>.</em>
+    /// </remarks>
     [Lite3Api(ReturnArg = nameof(arrayOffset))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status ArrayGetArray(ReadOnlySpan<byte> buffer, int offset, uint index, out int arrayOffset)
@@ -1830,7 +1947,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="value">On return, the iterator when successful; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_iter_create</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_iter_create</c>.</em>
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Status CreateIterator(ReadOnlySpan<byte> buffer, int offset, out Lite3Iterator value)
     {
@@ -1847,7 +1966,9 @@ public static unsafe partial class Lite3Core
     ///     Returns the value type of <see cref="entry" />.
     /// </summary>
     /// <param name="entry">The value entry.</param>
-    /// <remarks><em>Ported from C <c>lite3_val_type</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_val_type</c>.</em>
+    /// </remarks>
     [Lite3Api(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueKind GetValueKind(in ReadOnlyValueEntry entry)
@@ -1869,7 +1990,9 @@ public static unsafe partial class Lite3Core
     ///         <b>Warning:</b>This function assumes you have a valid `lite3_val`. Passing an invalid value will return an
     ///         invalid size.
     ///     </para>
-    ///     <para><em>Ported from C <c>lite3_val_type_size</c>.</em></para>
+    ///     <para>
+    ///         <em>Ported from C <c>lite3_val_type_size</c>.</em>
+    ///     </para>
     /// </remarks>
     [Lite3Api(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

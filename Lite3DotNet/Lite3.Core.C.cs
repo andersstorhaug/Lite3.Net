@@ -76,7 +76,9 @@ public static unsafe partial class Lite3Core
     /// <param name="offset">The key entry offset within the buffer.</param>
     /// <param name="keyTagSize">The actual key tag size.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>_verify_key</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>_verify_key</c>.</em>
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Status VerifyKey(
         ReadOnlySpan<byte> buffer,
@@ -139,7 +141,9 @@ public static unsafe partial class Lite3Core
     /// <param name="buffer">The message buffer.</param>
     /// <param name="offset">The value entry offset within the buffer.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>_verify_val</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>_verify_val</c>.</em>
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Status VerifyValue(ReadOnlySpan<byte> buffer, ref int offset)
     {
@@ -181,14 +185,16 @@ public static unsafe partial class Lite3Core
         offset += valueEntrySize;
         return 0;
     }
-    
+
     /// <param name="buffer">The message buffer.</param>
     /// <param name="offset">The start offset; 0 for root.</param>
     /// <param name="key">The key UTF8 text.</param>
     /// <param name="keyData">The key hash data.</param>
     /// <param name="value">On return, the successfully retrieved value; otherwise default.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_get_impl</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_get_impl</c>.</em>
+    /// </remarks>
     private static Status GetImpl(
         ReadOnlySpan<byte> buffer,
         int offset,
@@ -383,7 +389,9 @@ public static unsafe partial class Lite3Core
     /// <param name="writeOffset">Whether to provide container offset.</param>
     /// <param name="offset">The start offset.</param>
     /// <returns><c>0</c> on success; otherwise a negative status code.</returns>
-    /// <remarks><em>Ported from C <c>lite3_iter_next</c>.</em></remarks>
+    /// <remarks>
+    ///     <em>Ported from C <c>lite3_iter_next</c>.</em>
+    /// </remarks>
     internal static Status IteratorNext(
         ReadOnlySpan<byte> buffer,
         ref Lite3Iterator iterator,
@@ -597,7 +605,7 @@ public static unsafe partial class Lite3Core
         position = NodeSize;
         return 0;
     }
-    
+
     /// <summary>
     ///     Inserts an entry into the message structure to prepare for writing of the actual value.
     /// </summary>
