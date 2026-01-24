@@ -255,7 +255,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                 }
 
                 if (text.StartsWith("<returns>"))
-                {   
+                {
                     if (returnTypeMoniker == "void")
                         continue;
                     
@@ -267,28 +267,40 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                         continue;
                     }
 
-                    if (isContextApi && isChainableMethod)
-                    {
-                        source
-                            .Append(indent).Append("/// ")
-                            .AppendLine("<returns>The context, for optional method chaining.</returns>");
-                        continue;
-                    }
-
                     if (returnArgName != null && paramReturnLine != null)
                     {
                         var start = paramTagPrefix.Length + returnArgName.Length + paramTagSuffix.Length;
                         var end = paramReturnLine[start..].LastIndexOf('<') + start;
-
-                        if (end > 0)
+                        var returnArgDesc = end > 0 ? paramReturnLine[start..end].ToString() : null;
+                        
+                        if (returnArgDesc == null)
+                            continue;
+                        
+                        if (isContextApi && isChainableMethod && !isInitMethod)
+                        {
+                            source
+                                .Append(indent)
+                                .Append("/// <param name=\"").Append(returnArgName).Append("\">")
+                                .Append(returnArgDesc)
+                                .AppendLine("</param>");
+                        }
+                        else
                         {
                             source
                                 .Append(indent).Append("/// ")
                                 .Append("<returns>")
-                                .Append(paramReturnLine[start..end].ToString())
+                                .Append(returnArgDesc)
                                 .AppendLine("</returns>");
-                            continue;
                         }
+
+                        if (isContextApi && isChainableMethod)
+                        {
+                            source
+                                .Append(indent).Append("/// ")
+                                .AppendLine("<returns>The context, for optional method chaining.</returns>");
+                        }
+                        
+                        continue;
                     }
                 }
             
@@ -321,7 +333,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                 (isContextApi && param.Name == "buffer") ||
                 (isContextApi && param.Name == "position") ||
                 (createKeyData && param.Name == keyDataArgName) ||
-                (!useTryPattern && param.Name == returnArgName))
+                (!useTryPattern && !(isContextApi && isChainableMethod) && param.Name == returnArgName))
             {
                 indexOffset--;
                 continue;
@@ -341,7 +353,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                 .Append(indent).Append("var ").Append(keyDataArgName).Append(" = ")
                 .Append(CoreMethodPrefix).AppendLine("GetKeyData(key);");
         
-        if (returnArgParam is not null && !(isContextApi && returnArgName == "position"))
+        if (returnArgParam != null && !(isContextApi && isChainableMethod))
             source.Append(indent).Append(returnArgTypeName).Append(" ").Append(returnArgName).AppendLine(";");
 
         if (isContextApi)

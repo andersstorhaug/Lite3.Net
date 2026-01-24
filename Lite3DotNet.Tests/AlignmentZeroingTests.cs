@@ -17,7 +17,7 @@ public class AlignmentZeroingTests
         
         // Object insert adds 99 bytes: LITE3_NODE_SIZE (96) + "a" (size 2 including \0) + key_tag (size 1)
         // 1 padding byte is inserted to reach 100 bytes, for 4 byte alignment.
-        Lite3.SetObject(buffer, ref position, 0, "a"u8, out _);
+        Lite3.SetObject(buffer, ref position, 0, "a"u8);
         
         // Validate padding byte was zeroed
         buffer[Lite3Core.NodeSize].ShouldBe((byte)0);
@@ -34,7 +34,7 @@ public class AlignmentZeroingTests
         var testPosition = position;
         
         // Overwrite "key1":"val1" with an Object
-        Lite3.SetObject(buffer, ref position, 0, "key1"u8, out _);
+        Lite3.SetObject(buffer, ref position, 0, "key1"u8);
         
         buffer[testPosition].ShouldBe((byte)0);
         buffer[testPosition + 1].ShouldBe((byte)0);

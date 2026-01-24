@@ -161,7 +161,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         Lite3.SetLong(buffer, ref position, 0, "duration_ms"u8, 47);
         
         // Set headers
-        Lite3.SetObject(buffer, ref position, 0, "headers"u8, out var headers);
+        var headers = Lite3.SetObject(buffer, ref position, 0, "headers"u8);
         Lite3.SetString(buffer, ref position, headers, "content-type"u8, "application/json"u8);
         Lite3.SetString(buffer, ref position, headers, "x-request-id"u8, "req_9f8e2a"u8);
         Lite3.SetString(buffer, ref position, headers, "user-agent"u8, "curl/8.1.2"u8);

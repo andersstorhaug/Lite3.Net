@@ -511,7 +511,7 @@ public static unsafe partial class Lite3Core
     /// <remarks>
     ///     <em>Ported from C <c>lite3_set_obj</c>.</em>
     /// </remarks>
-    [Lite3Api(KeyDataArg = nameof(keyData))]
+    [Lite3Api(KeyDataArg = nameof(keyData), ReturnArg = nameof(objectOffset))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Status SetObject(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, KeyData keyData, out int objectOffset)
     {
