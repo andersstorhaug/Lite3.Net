@@ -280,7 +280,7 @@ public static unsafe partial class Lite3Core
     
     /// <remarks><em>Ported from C <c>_lite3_verify_obj_set</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Status VerifyObjectSet(ReadOnlySpan<byte> buffer, in int position, int offset)
+    private static Status VerifyObjectSet(ReadOnlySpan<byte> buffer, in int position, int offset, ReadOnlySpan<byte> key)
     {
         Status status;
         
@@ -291,6 +291,12 @@ public static unsafe partial class Lite3Core
         {
             _logger.LogError("INVALID ARGUMENT: EXPECTING OBJECT TYPE");
             return Status.ExpectedObject;
+        }
+
+        if (key.IsEmpty)
+        {
+            _logger.LogError("INVALID ARGUMENT: EXPECTING NON-NULL KEY");
+            return Status.ExpectedNonEmptyKey;
         }
         
         return 0;
@@ -331,7 +337,7 @@ public static unsafe partial class Lite3Core
     {
         Status status;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         if ((status = SetImpl(buffer, ref position, offset, key, keyData, ValueKindSizes[(int)ValueKind.Null], out _, out var entry)) < 0)
@@ -360,7 +366,7 @@ public static unsafe partial class Lite3Core
     {
         Status status;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         if ((status = SetImpl(buffer, ref position, offset, key, keyData, ValueKindSizes[(int)ValueKind.Bool], out _, out var entry)) < 0)
@@ -390,7 +396,7 @@ public static unsafe partial class Lite3Core
     {
         Status status;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         if ((status = SetImpl(buffer, ref position, offset, key, keyData, ValueKindSizes[(int)ValueKind.I64], out _, out var entry)) < 0)
@@ -420,7 +426,7 @@ public static unsafe partial class Lite3Core
     {
         Status status;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         if ((status = SetImpl(buffer, ref position, offset, key, keyData, ValueKindSizes[(int)ValueKind.F64], out _, out var entry)) < 0)
@@ -450,7 +456,7 @@ public static unsafe partial class Lite3Core
     {
         Status status;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         if ((status = SetImpl(buffer, ref position, offset, key, keyData, ValueKindSizes[(int)ValueKind.Bytes] + value.Length, out _, out var entry)) < 0)
@@ -483,7 +489,7 @@ public static unsafe partial class Lite3Core
         
         var stringSize = value.Length + 1;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         if ((status = SetImpl(buffer, ref position, offset, key, keyData, ValueKindSizes[(int)ValueKind.String] + stringSize, out _, out var entry)) < 0)
@@ -518,7 +524,7 @@ public static unsafe partial class Lite3Core
         Status status;
         objectOffset = 0;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         return SetObjectImpl(buffer, ref position, offset, key, keyData, out objectOffset);
@@ -544,7 +550,7 @@ public static unsafe partial class Lite3Core
         Status status;
         arrayOffset = 0;
         
-        if ((status = VerifyObjectSet(buffer, position, offset)) < 0)
+        if ((status = VerifyObjectSet(buffer, position, offset, key)) < 0)
             return status;
         
         return SetArrayImpl(buffer, ref position, offset, key, keyData, out arrayOffset);
@@ -1030,7 +1036,7 @@ public static unsafe partial class Lite3Core
     
     /// <remarks><em>Ported from C <c>_lite3_verify_obj_get</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Status VerifyObjectGet(ReadOnlySpan<byte> buffer, int offset)
+    private static Status VerifyObjectGet(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key)
     {
         Status status;
         
@@ -1041,6 +1047,12 @@ public static unsafe partial class Lite3Core
         {
             _logger.LogError("INVALID ARGUMENT: EXPECTING OBJECT TYPE");
             return Status.ExpectedObject;
+        }
+
+        if (key.IsEmpty)
+        {
+            _logger.LogError("INVALID ARGUMENT: EXPECTING NON-NULL KEY");
+            return Status.ExpectedNonEmptyKey;
         }
         
         return 0;
@@ -1121,7 +1133,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueKind GetValueKind(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return ValueKind.Invalid;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1176,7 +1188,7 @@ public static unsafe partial class Lite3Core
         Status status;
         value = 0;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
@@ -1208,7 +1220,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ContainsKey(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         return GetImpl(buffer, offset, key, keyData, out _) >= 0;
@@ -1261,7 +1273,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNull(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1285,7 +1297,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsBool(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1309,7 +1321,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLong(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1333,7 +1345,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDouble(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1357,7 +1369,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsBytes(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1381,7 +1393,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsString(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1405,7 +1417,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsObject(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1429,7 +1441,7 @@ public static unsafe partial class Lite3Core
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsArray(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData)
     {
-        if (VerifyObjectGet(buffer, offset) < 0)
+        if (VerifyObjectGet(buffer, offset, key) < 0)
             return false;
         
         if (GetImpl(buffer, offset, key, keyData, out var entry) < 0)
@@ -1490,7 +1502,7 @@ public static unsafe partial class Lite3Core
         Status status;
         value = false;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
@@ -1525,7 +1537,7 @@ public static unsafe partial class Lite3Core
         Status status;
         value = 0;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
@@ -1560,7 +1572,7 @@ public static unsafe partial class Lite3Core
         Status status;
         value = 0;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
@@ -1595,7 +1607,7 @@ public static unsafe partial class Lite3Core
         Status status;
         value = default;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
@@ -1634,7 +1646,7 @@ public static unsafe partial class Lite3Core
         Status status;
         value = default;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
@@ -1675,7 +1687,7 @@ public static unsafe partial class Lite3Core
         Status status;
         objectOffset = 0;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((status = GetImpl(buffer, offset, key, keyData, out var entry)) < 0)
@@ -1710,7 +1722,7 @@ public static unsafe partial class Lite3Core
         Status status;
         arrayOffset = 0;
         
-        if ((status = VerifyObjectGet(buffer, offset)) < 0)
+        if ((status = VerifyObjectGet(buffer, offset, key)) < 0)
             return status;
         
         if ((status = GetImpl(buffer, offset, key, keyData,  out var entry)) < 0)
