@@ -118,12 +118,14 @@ public class TronApiGenerator : IIncrementalGenerator
                     var writeNewLine = methodIndex > 0;
                     // ReSharper disable RedundantAssignment
                     writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: true, isContextApi: true);
-                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: true, isContextApi: false);
                     writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: false, isContextApi: true);
-                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: false, isContextApi: false);
                     writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: true, isContextApi: true);
-                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: true, isContextApi: false);
                     writeNewLine |= TryWriteMethod(tronContextSource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: false, isContextApi: true);
+                    
+                    writeNewLine = methodIndex > 0;
+                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: true, isContextApi: false);
+                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: true, createKeyData: false, isContextApi: false);
+                    writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: true, isContextApi: false);
                     writeNewLine |= TryWriteMethod(tronPrimarySource, method, attrData, xmlComment, writeNewLine, useTryPattern: false, createKeyData: false, isContextApi: false);
                     // ReSharper restore RedundantAssignment
                 }
@@ -208,6 +210,7 @@ public class TronApiGenerator : IIncrementalGenerator
         if (xmlComment != null)
         {
             var paramReturnLine = ReadOnlySpan<char>.Empty;
+            var paramIndex = -1;
             
             foreach (var line in xmlComment.EnumerateLines())
             {
@@ -220,6 +223,7 @@ public class TronApiGenerator : IIncrementalGenerator
                 const string paramTagSuffix = "\">";
 
                 var isParam = text.StartsWith(paramTagPrefix);
+                if (isParam) paramIndex++;
                 
                 if (!useTryPattern && returnArgName != null)
                 {
@@ -238,11 +242,11 @@ public class TronApiGenerator : IIncrementalGenerator
 
                 if (isContextApi)
                 {
-                    if (isParam && text[paramTagPrefix.Length..].StartsWith("buffer"))
-                    {
+                    if (isParam && paramIndex == 0)
                         source.Append(indent).AppendLine("/// <param name=\"context\">The context.</param>");
+                    
+                    if (isParam && text[paramTagPrefix.Length..].StartsWith("buffer"))
                         continue;
-                    }
 
                     if (isParam && text[paramTagPrefix.Length..].StartsWith("position"))
                         continue;
