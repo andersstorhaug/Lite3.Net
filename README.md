@@ -8,7 +8,7 @@ This is a C# port of [Lite³](https://github.com/fastserial/lite3).
 
 Note that this project is in **beta** status, as specifications are being defined for Lite³.
 
-This port currently tracks upstream `82f62eefc4e859e5d5efb2c5465b39a8d8982ba8`.
+This port currently tracks upstream `a16b991`.
 
 ## Feature Parity
 
