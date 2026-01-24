@@ -6,7 +6,8 @@ This is a C# port of [TRON](https://github.com/fastserial/lite3) (formerly LiteÂ
 
 ## Current Status
 
-This port has feature parity with the reference C implementation as of December 2025 (`a622f746eebe4f2d04a480abdb6e731835ce5648`).  
+This port has feature parity with the reference C implementation as of December 2025 (`a622f746eebe4f2d04a480abdb6e731835ce5648`).
+
 To my knowledge, this port has not been used in production.
 
 ## Feature Parity
