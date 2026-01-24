@@ -62,7 +62,7 @@ var maxRetries = context.GetLong(0, "max_retries"u8);
 Console.WriteLine($"Max Retries: {maxRetries}");
 ```
 
-See [`ContextApiExamples.cs`](Lite3.Tests/ContextApiExamples.cs) and [`BufferApiExamples.cs`](Lite3.Tests/BufferApiExamples.cs) for more examples.
+See [`ContextApiExamples.cs`](Lite3DotNet.Tests/ContextApiExamples.cs) and [`BufferApiExamples.cs`](Lite3DotNet.Tests/BufferApiExamples.cs) for more examples.
 
 ## Attribution
 
