@@ -103,7 +103,7 @@ public static unsafe partial class Lite3
         private readonly ReadOnlySpan<byte> _buffer = buffer;
         internal ValueKind Type => (ValueKind)_buffer[Offset];
         public readonly int Offset = startOffset;
-        internal readonly int ValueOffset = startOffset + ValueSize;
+        internal readonly int ValueOffset = startOffset + ValueHeaderSize;
         internal ReadOnlySpan<byte> Value => _buffer[ValueOffset..];
     }
     
@@ -112,10 +112,10 @@ public static unsafe partial class Lite3
     {
         private Span<byte> _buffer = buffer;
         public ref byte Type => ref _buffer[startOffset];
-        public Span<byte> Value => _buffer[(startOffset + ValueSize)..];
+        public Span<byte> Value => _buffer[(startOffset + ValueHeaderSize)..];
     }
     
-    private const int ValueSize = 1;
+    internal const int ValueHeaderSize = 1;
     
     /// <remarks><em>Ported from C <c>lite3_type_sizes</c>.</em></remarks>
     internal static readonly int[] ValueKindSizes =
@@ -126,8 +126,8 @@ public static unsafe partial class Lite3
         8, // F64
         4, // Bytes
         4, // String
-        NodeSize - ValueSize, // Object
-        NodeSize - ValueSize, // Array
+        NodeSize - ValueHeaderSize, // Object
+        NodeSize - ValueHeaderSize, // Array
         0 // Invalid
     ];
 

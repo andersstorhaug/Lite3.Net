@@ -143,7 +143,7 @@ public static unsafe partial class Lite3
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Status VerifyValue(ReadOnlySpan<byte> buffer, ref int offset)
     {
-        if (ValueSize > buffer.Length || offset > buffer.Length - ValueSize)
+        if (ValueHeaderSize > buffer.Length || offset > buffer.Length - ValueHeaderSize)
         {
             _logger.LogError("VALUE OUT OF BOUNDS");
             return Status.ValueOutOfBounds;
@@ -156,7 +156,7 @@ public static unsafe partial class Lite3
             return Status.ValueKindInvalid;
         }
         
-        var valueEntrySize = ValueSize + ValueKindSizes[(int)kind];
+        var valueEntrySize = ValueHeaderSize + ValueKindSizes[(int)kind];
         if (valueEntrySize > buffer.Length || offset > buffer.Length - valueEntrySize)
         {
             _logger.LogError("VALUE OUT OF BOUNDS");
@@ -167,7 +167,7 @@ public static unsafe partial class Lite3
         {
             var byteCount = 0;
             for (var i = 0; i < ValueKindSizes[(int)ValueKind.Bytes]; i++)
-                byteCount |= buffer[offset + ValueSize + i] << (8 * i);
+                byteCount |= buffer[offset + ValueHeaderSize + i] << (8 * i);
             
             valueEntrySize += byteCount;
             
@@ -614,7 +614,7 @@ public static unsafe partial class Lite3
     ///     <para>
     ///         <b>Note</b>: this function expects the caller to write to:
     ///         <list type="number">
-    ///             <item><see cref="ValueEntry.Type" />: the value type (length of <see cref="ValueSize" />).</item>
+    ///             <item><see cref="ValueEntry.Type" />: the value type (length of <see cref="ValueHeaderSize" />).</item>
     ///             <item><see cref="ValueEntry.Value" />: the actual value (length of <see cref="valueLength" />).</item>
     ///         </list>
     ///     </para>
@@ -656,7 +656,7 @@ public static unsafe partial class Lite3
             ((keyData.Size >> (16 - KeyTagKeySizeShift) != 0 ? 1 : 0) << 1) +
             (keyData.Size >> (8 - KeyTagKeySizeShift) != 0 ? 1 : 0) +
             (keyData.Size != 0 ? 1 : 0);
-        var baseEntrySize = keyTagSize + (int)keyData.Size + ValueSize + valueLength;
+        var baseEntrySize = keyTagSize + (int)keyData.Size + ValueHeaderSize + valueLength;
         
         if ((offset & NodeAlignmentMask) != 0)
         {
@@ -958,7 +958,7 @@ public static unsafe partial class Lite3
                     
                     valueStartOffset = position;
                     value = new ValueEntry(buffer, position);
-                    position += ValueSize + valueLength;
+                    position += ValueHeaderSize + valueLength;
                     
                     _logger.LogProbe("OK");
                     return 0;

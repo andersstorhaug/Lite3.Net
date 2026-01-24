@@ -108,10 +108,7 @@ public static partial class Tron
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetSize()
         {
-            var result = Lite3.GetValueSize(value);
-            if (value.Type is Lite3.ValueKind.String or Lite3.ValueKind.Bytes)
-                result += Lite3.ValueKindSizes[(int)value.Type];
-            return result;
+            return Lite3.ValueHeaderSize + Lite3.GetValueSize(value);
         }
 
         /// <inheritdoc cref="Lite3.ValueIsNull" />
