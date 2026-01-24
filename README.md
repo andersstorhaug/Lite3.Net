@@ -1,6 +1,6 @@
 # Lite³: A JSON-Compatible Zero-Copy Serialization Format
 
-[![NuGet](https://img.shields.io/nuget/v/lite3-dotnet.svg)](https://www.nuget.org/packages/Lite3.DotNet)
+[![NuGet](https://img.shields.io/nuget/v/lite3-dotnet.svg)](https://www.nuget.org/packages/Lite3.Net)
 
 This is a C# port of [Lite³](https://github.com/fastserial/lite3).
 
