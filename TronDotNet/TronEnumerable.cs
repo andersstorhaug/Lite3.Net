@@ -57,17 +57,17 @@ public readonly ref struct TronEnumerable(ReadOnlySpan<byte> buffer, int offset,
         private readonly ReadOnlySpan<byte> _buffer = buffer;
         
         /// <summary>
-        /// The object or array start offset.
+        ///     The object or array start offset.
         /// </summary>
         public readonly int Offset = offset;
         
         /// <summary>
-        /// The key entry.
+        ///     The key entry.
         /// </summary>
         public readonly StringEntry Key = key;
 
         /// <summary>
-        ///     Get the value entry.
+        ///     Gets the value entry.
         /// </summary>
         public ReadOnlyValueEntry GetValue() => new(_buffer, Offset);
     }
