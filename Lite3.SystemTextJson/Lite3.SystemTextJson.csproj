@@ -9,7 +9,7 @@
         <Authors>Anders Storhaug</Authors>
         <Description>JSON Encoding for Lite³</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <RepositoryUrl>https://github.com/andersstorhaug/Lite3-DotNet</RepositoryUrl>
+        <RepositoryUrl>https://github.com/andersstorhaug/Lite3.DotNet</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
