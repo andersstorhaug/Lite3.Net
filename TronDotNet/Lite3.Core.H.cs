@@ -124,8 +124,8 @@ public static unsafe partial class Lite3
         1, // Bool
         8, // I64
         8, // F64
-        4, // Bytes
-        4, // String
+        BytesLengthSize, // Bytes
+        StringLengthSize, // String
         NodeSize - ValueHeaderSize, // Object
         NodeSize - ValueHeaderSize, // Array
         0 // Invalid
