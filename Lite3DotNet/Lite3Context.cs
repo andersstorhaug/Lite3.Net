@@ -25,6 +25,8 @@ public ref struct Lite3Context
         
         var buffer = arrayPool.Rent(initialCapacity);
         
+        buffer.AsSpan().Clear();
+        
         return new  Lite3Context(buffer, position: 0, isRentedBuffer: true, arrayPool);
     }
 
