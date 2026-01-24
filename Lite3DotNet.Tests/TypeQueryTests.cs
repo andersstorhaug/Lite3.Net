@@ -87,7 +87,7 @@ public class TypeQueryTests
         // Append to nested array
         context
             .ArrayAppendLong(arrayOffset, 1)
-            .ArrayAppendObject(arrayOffset, out var nestedObjectOffset)
+            .ArrayAppendObject(arrayOffset, out _)
             .ArrayAppendString(arrayOffset, "test"u8);
         
         // Test type queries on nested array
@@ -105,7 +105,7 @@ public class TypeQueryTests
         // Test object root
         var context = Lite3Context.Create();
 
-        using (var scope = context.BeginScope())
+        using (context.BeginScope())
         {
             context.InitializeObject();
         
@@ -115,7 +115,7 @@ public class TypeQueryTests
         // Test array root
         context = Lite3Context.Create();
 
-        using (var scope = context.BeginScope())
+        using (context.BeginScope())
         {
             context.InitializeArray();
             
