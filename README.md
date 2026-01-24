@@ -4,8 +4,10 @@ This is a C# port of [TRON](https://github.com/fastserial/lite3) (formerly Lite^
 
 ## Current Status
 
+Pending release to NuGet.
+
 This port has feature parity with the reference C implementation as of December 2025.  
-To my knowledge, this has not been used in production.
+To my knowledge, this port has not been used in production.
 
 ## Feature Parity
 
