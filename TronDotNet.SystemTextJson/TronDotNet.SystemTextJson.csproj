@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
 
         <PackageId>Tron.Lite3.SystemTextJson</PackageId>
-        <Version>0.1.2</Version>
         <Authors>Anders Storhaug</Authors>
         <Description>JSON Encoding for Tron-DotNet, C# port of TRON (Lite³).</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>

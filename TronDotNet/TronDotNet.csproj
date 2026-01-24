@@ -7,7 +7,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         
         <PackageId>Tron.Lite3</PackageId>
-        <Version>0.1.2</Version>
         <Authors>Anders Storhaug</Authors>
         <Description>C# port of TRON (Lite³).</Description>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
