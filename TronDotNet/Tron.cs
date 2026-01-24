@@ -167,7 +167,6 @@ public static partial class Tron
         ///     <para>Convenience method for getting a converted .NET-native UTF-16 string.</para>
         /// </summary>
         /// <seealso cref="Lite3.GetUtf8Value"/>
-        /// <param name="context">The context.</param>
         /// <returns>The converted UTF-16 string value.</returns>
         public string GetStringValue()
         {
