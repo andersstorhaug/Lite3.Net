@@ -133,7 +133,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                 primarySource.AppendLine("}");
                 contextSource.AppendLine("}");
                 
-                context.AddSource($"Lite3DotNet.g.cs", primarySource.ToString());
+                context.AddSource($"Lite3.g.cs", primarySource.ToString());
                 context.AddSource($"Lite3ContextExtensions.g.cs", contextSource.ToString());
             }
         );
