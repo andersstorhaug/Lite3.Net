@@ -98,12 +98,12 @@ public static unsafe partial class Lite3
     ///     <para>To discover types inside a message, compare against <see cref="ValueEntry.Type" /></para>
     /// </summary>
     /// <remarks><em>Ported from C <c>lite3_val</c>.</em></remarks>
-    public readonly ref struct ReadOnlyValueEntry(ReadOnlySpan<byte> buffer, int startOffset)
+    public readonly ref struct ReadOnlyValueEntry(ReadOnlySpan<byte> buffer, int offset)
     {
         private readonly ReadOnlySpan<byte> _buffer = buffer;
         internal ValueKind Type => (ValueKind)_buffer[Offset];
-        public readonly int Offset = startOffset;
-        internal readonly int ValueOffset = startOffset + ValueHeaderSize;
+        public readonly int Offset = offset;
+        internal readonly int ValueOffset = offset + ValueHeaderSize;
         internal ReadOnlySpan<byte> Value => _buffer[ValueOffset..];
     }
     
@@ -157,7 +157,7 @@ public static unsafe partial class Lite3
         public readonly int Offset = offset;
     }
 
-    private const int BytesLengthSize = sizeof(int);
+    internal const int BytesLengthSize = sizeof(int);
     
     /// <summary>
     ///     <para>Holds a reference to a string value inside a message buffer.</para>
@@ -180,7 +180,7 @@ public static unsafe partial class Lite3
         public int Offset = offset;
     }
     
-    private const int StringLengthSize = sizeof(int);
+    internal const int StringLengthSize = sizeof(int);
     
     /// <summary>
     ///     <para>Generational safe access wrapper.</para>

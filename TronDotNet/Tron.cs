@@ -104,11 +104,18 @@ public static partial class Tron
         /// <inheritdoc cref="Lite3.GetValueSize" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetValueSize() => Lite3.GetValueSize(value);
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetSize()
         {
-            return Lite3.ValueHeaderSize + Lite3.GetValueSize(value);
+            return Lite3.ValueHeaderSize +
+                   value.Type switch
+                   {
+                       Lite3.ValueKind.String => Lite3.StringLengthSize,
+                       Lite3.ValueKind.Bytes => Lite3.BytesLengthSize,
+                       _ => 0
+                   } +
+                   Lite3.GetValueSize(value);
         }
 
         /// <inheritdoc cref="Lite3.ValueIsNull" />
