@@ -66,8 +66,8 @@ public static class Lite3JsonDecoder
             buffer,
             pipeReader,
             minReadSize,
-            arrayPool: null,
-            cancellationToken);
+            null,
+            cancellationToken).ConfigureAwait(false);
         
         return position;
     }
@@ -99,7 +99,7 @@ public static class Lite3JsonDecoder
             pipeReader,
             minReadSize,
             arrayPool,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
         
         return new DecodeResult(buffer, position, isRentedBuffer, arrayPool);
     }
