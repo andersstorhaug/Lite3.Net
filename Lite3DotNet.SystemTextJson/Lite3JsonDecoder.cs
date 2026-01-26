@@ -231,19 +231,16 @@ public static class Lite3JsonDecoder
         {
             var jsonReader = new Utf8JsonReader(utf8Json, isFinalBlock: true, new JsonReaderState());
 
-            do
-            {
-                var status = DecodeCore(arrayPool,
-                    ref frames,
-                    ref buffer,
-                    growBuffer,
-                    ref isRentedBuffer,
-                    ref position,
-                    ref jsonReader);
+            var status = DecodeCore(arrayPool,
+                ref frames,
+                ref buffer,
+                growBuffer,
+                ref isRentedBuffer,
+                ref position,
+                ref jsonReader);
 
-                if (status < 0)
-                    throw status.AsException();
-            } while (!frames.IsEmpty());
+            if (status < 0)
+                throw status.AsException();
 
             if (jsonReader.BytesConsumed != utf8Json.Length)
                 throw new JsonException("Trailing data after JSON payload.");
