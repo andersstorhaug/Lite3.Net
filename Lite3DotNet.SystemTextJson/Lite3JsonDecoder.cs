@@ -66,7 +66,7 @@ public static class Lite3JsonDecoder
             buffer,
             pipeReader,
             minReadSize,
-            null,
+            arrayPool: null,
             cancellationToken).ConfigureAwait(false);
         
         return position;
