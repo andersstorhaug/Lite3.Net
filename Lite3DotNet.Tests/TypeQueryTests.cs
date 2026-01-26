@@ -41,9 +41,7 @@ public class TypeQueryTests
     [Fact]
     public void Can_get_array_type_with_context_API()
     {
-        var context = Lite3Context.Create();
-        
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
         
         // Initialize as array
         context.InitializeArray();
@@ -74,9 +72,7 @@ public class TypeQueryTests
     [Fact]
     public void Can_get_array_types_when_nested()
     {
-        var context = Lite3Context.Create();
-        
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
         
         // Initialize as object
         context.InitializeObject();
@@ -105,7 +101,7 @@ public class TypeQueryTests
         // Test object root
         var context = Lite3Context.Create();
 
-        using (context.BeginScope())
+        using (context)
         {
             context.InitializeObject();
         
@@ -115,7 +111,7 @@ public class TypeQueryTests
         // Test array root
         context = Lite3Context.Create();
 
-        using (context.BeginScope())
+        using (context)
         {
             context.InitializeArray();
             
@@ -146,9 +142,7 @@ public class TypeQueryTests
     [Fact]
     public void Can_get_root_type_with_empty_buffer()
     {
-        var context = Lite3Context.Create();
-        
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
         
         context.GetRootType().ShouldBe(Lite3Core.ValueKind.Invalid);
     }

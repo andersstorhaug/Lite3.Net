@@ -193,12 +193,10 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         var isChainableMethod = isInitMethod || isSetMethod || isAppendMethod;
         
         var originalReturnTypeName = method.ReturnsVoid ? "void" : GetTypeName(method.ReturnType);
-
-        const string refContext = $"ref {ContextTypeName}";
             
-        var returnTypeMoniker =
+        var returnTypeName =
             useTryPattern ? "bool" :
-            isContextApi && isChainableMethod ? refContext :
+            isContextApi && isChainableMethod ? ContextTypeName :
             returnArgParam != null ? GetTypeName(returnArgParam.Type) :
             tryPattern ? "void" :
             originalReturnTypeName;
@@ -256,7 +254,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
 
                 if (text.StartsWith("<returns>"))
                 {
-                    if (returnTypeMoniker == "void")
+                    if (returnTypeName == "void")
                         continue;
                     
                     if (useTryPattern)
@@ -314,7 +312,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
             .Append(indent).AppendLine(InlineAttribute)
             .Append(indent)
             .Append("public static ")
-            .Append(returnTypeMoniker)
+            .Append(returnTypeName)
             .Append(" ")
             .Append(useTryPattern ? "Try" : null)
             .Append(method.Name)
@@ -325,7 +323,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         {
             if (isContextApi && index == 0)
             {
-                source.Append("this ").Append(refContext).Append(" context");
+                source.Append("this ").Append(ContextTypeName).Append(" context");
                 indexOffset++;
             }
             
@@ -421,10 +419,10 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         if (!useTryPattern)
         {
             if (isContextApi && isChainableMethod)
-                source.Append(indent).AppendLine("return ref context;");
+                source.Append(indent).AppendLine("return context;");
             else if (returnArgParam != null)
                 source.Append(indent).Append("return ").Append(returnArgParam.Name).AppendLine(";");
-            else if (returnTypeMoniker != "void")
+            else if (returnTypeName != "void")
                 source.Append(indent).AppendLine("return result;");
         }
 

@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Lite3DotNet;
 
-public ref struct Lite3Context
+public sealed class Lite3Context : IDisposable
 {
     /// <summary>
     ///     <para>Create a context, optionally with a custom size.</para>
@@ -28,7 +28,7 @@ public ref struct Lite3Context
         // Ensure that at least the root type tag is invalid
         buffer[0] = (byte)Lite3Core.ValueKind.Invalid;
         
-        return new  Lite3Context(buffer, position: 0, isRentedBuffer: true, arrayPool);
+        return new  Lite3Context(arrayPool, buffer, position: 0, isRentedBuffer: true);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public ref struct Lite3Context
         
         buffer.CopyTo(newBuffer);
         
-        return new Lite3Context(newBuffer, position, isRentedBuffer: true, arrayPool: arrayPool);
+        return new Lite3Context(arrayPool: arrayPool, buffer: newBuffer, position: position, isRentedBuffer: true);
     }
 
     /// <summary>
@@ -86,46 +86,37 @@ public ref struct Lite3Context
     public static Lite3Context CreateFromOwned(byte[] buffer, int position, ArrayPool<byte>? arrayPool = null)
     {
         arrayPool ??= ArrayPool<byte>.Shared;
-        return new Lite3Context(buffer, position, isRentedBuffer: true, arrayPool);
+        return new Lite3Context(arrayPool, buffer, position, isRentedBuffer: true);
     }
-
-    private readonly Scope _scope;
     
-    public Span<byte> Buffer;
+    public byte[] Buffer;
     public int Position;
+    private readonly ArrayPool<byte> _arrayPool;
+    private bool _isRentedBuffer;
 
-    private Lite3Context(byte[] buffer, int position, bool isRentedBuffer, ArrayPool<byte> arrayPool)
+    private Lite3Context(ArrayPool<byte> arrayPool, byte[] buffer, int position, bool isRentedBuffer)
     {
-        _scope = new Scope(buffer, isRentedBuffer, arrayPool);
+        _arrayPool = arrayPool;
+        _isRentedBuffer = isRentedBuffer;
         
         Buffer = buffer;
         Position = position;
     }
-
-    public Scope BeginScope() => _scope;
     
     public Span<byte> WrittenBuffer => Buffer[..Position];
+    
+    public void Dispose()
+    {
+        if (_isRentedBuffer)
+            ArrayPool<byte>.Shared.Return(Buffer);
+    }
 
     internal Lite3Core.Status Grow()
     {
-        var status = Lite3Buffer.Grow(_scope.ArrayPool, _scope.IsRentedBuffer, _scope.Buffer, out _scope.Buffer);
-        
-        _scope.IsRentedBuffer = true;
+        var status = Lite3Buffer.Grow(_arrayPool, _isRentedBuffer, Buffer, out Buffer);
+
+        _isRentedBuffer = true;
         
         return status;
-    }
-
-    public sealed class Scope(byte[] buffer, bool isRentedBuffer, ArrayPool<byte> arrayPool)
-        : IDisposable
-    {
-        internal readonly ArrayPool<byte> ArrayPool = arrayPool;
-        internal byte[] Buffer = buffer;
-        internal bool IsRentedBuffer = isRentedBuffer;
-        
-        public void Dispose()
-        {
-            if (IsRentedBuffer)
-                ArrayPool<byte>.Shared.Return(Buffer);
-        }
     }
 }

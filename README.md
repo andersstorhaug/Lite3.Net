@@ -48,9 +48,7 @@ Console.WriteLine($"Max Retries: {maxRetries}");
 The equivalent Context API code is below.
 
 ```csharp
-var context = Lite3Context.Create();
-
-using var scope = context.BeginScope();
+using var context = Lite3Context.Create();
 
 context
     .InitializeObject()

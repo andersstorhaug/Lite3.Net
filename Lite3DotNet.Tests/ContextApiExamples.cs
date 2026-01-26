@@ -19,8 +19,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_build_messages()
     {
-        var context = Lite3Context.Create();
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
 
         // Build message
         context
@@ -40,8 +39,7 @@ public class ContextApiExamples(ITestOutputHelper output)
         output.WriteLine(Lite3JsonEncoder.EncodeString(context.WrittenBuffer, 0));
         
         // Transmit data / copy to new context
-        var receiveContext = Lite3Context.CreateFrom(context.Buffer, context.Position);
-        using var transmitScope = receiveContext.BeginScope();
+        using var receiveContext = Lite3Context.CreateFrom(context.Buffer, context.Position);
         
         // Mutate (zero-copy, no parsing)
         output.WriteLine("Verifying fastest lap");
@@ -62,8 +60,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_read_messages()
     {
-        var context = Lite3Context.Create();
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
         
         // Build Message
         context
@@ -123,8 +120,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_work_with_strings()
     {
-        var context = Lite3Context.Create();
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
 
         // Build message
         context
@@ -158,8 +154,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_work_with_nesting()
     {
-        var context = Lite3Context.Create();
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
 
         // Build message
         context
@@ -190,8 +185,7 @@ public class ContextApiExamples(ITestOutputHelper output)
     [Fact]
     public void Can_work_with_arrays()
     {
-        var context = Lite3Context.Create();
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
 
         context
             .InitializeArray()
@@ -241,8 +235,7 @@ public class ContextApiExamples(ITestOutputHelper output)
             "Sarah"u8.ToArray(),
         };
         
-        var context = Lite3Context.Create();
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.Create();
         
         // Build array
         context.InitializeArray();
@@ -308,9 +301,8 @@ public class ContextApiExamples(ITestOutputHelper output)
         await using var fileStream = File.OpenRead("periodic_table.json");
         
         var decodeResult = await Lite3JsonDecoder.DecodeAsync(PipeReader.Create(fileStream));
-        var context = Lite3Context.CreateFromOwned(decodeResult.Buffer, decodeResult.Position, decodeResult.ArrayPool);
         
-        using var scope = context.BeginScope();
+        using var context = Lite3Context.CreateFromOwned(decodeResult.Buffer, decodeResult.Position, decodeResult.ArrayPool);
         
         // Iterator to find densest element
         var dataOffset = context.GetArray(0, "data"u8);
