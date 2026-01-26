@@ -22,7 +22,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build message
-        var position = Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out var position);
         Lite3.SetString(buffer, ref position, 0, "event"u8, "lap_complete"u8);
         Lite3.SetLong(buffer, ref position, 0, "lap"u8, 55);
         Lite3.SetDouble(buffer, ref position, 0, "time_sec"u8, 88.427);
@@ -63,7 +63,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build Message
-        var position = Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out var position);
         Lite3.SetString(buffer, ref position, 0, "title"u8, "C Programming Language, 2nd Edition"u8);
         Lite3.SetString(buffer, ref position, 0, "language"u8, "en"u8);
         Lite3.SetDouble(buffer, ref position, 0, "price_usd"u8, 60.30);
@@ -122,7 +122,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build message
-        var position = Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out var position);
         Lite3.SetString(buffer, ref position, 0, "name"u8, "Maria"u8);
         Lite3.SetLong(buffer, ref position, 0, "age"u8, 24);
         Lite3.SetString(buffer, ref position, 0, "email"u8, "marie@example.com"u8);
@@ -155,7 +155,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
 
         // Build message
-        var position = Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out var position);
         Lite3.SetString(buffer, ref position, 0, "event"u8, "http_request"u8);
         Lite3.SetString(buffer, ref position, 0, "method"u8, "POST"u8);
         Lite3.SetLong(buffer, ref position, 0, "duration_ms"u8, 47);
@@ -183,7 +183,7 @@ public class BufferApiExamples(ITestOutputHelper output)
     {
         var buffer = new byte[1024];
         
-        var position = Lite3.InitializeArray(buffer);
+        Lite3.InitializeArray(buffer, out var position);
         Lite3.ArrayAppendString(buffer, ref position, 0, "zebra"u8);
         Lite3.ArrayAppendString(buffer, ref position, 0, "giraffe"u8);
         Lite3.ArrayAppendString(buffer, ref position, 0, "buffalo"u8);
@@ -233,7 +233,7 @@ public class BufferApiExamples(ITestOutputHelper output)
         var buffer = new byte[1024];
         
         // Build array
-        var position = Lite3.InitializeArray(buffer);
+        Lite3.InitializeArray(buffer, out var position);
 
         for (var i = 0; i < names.Count; i++)
         {

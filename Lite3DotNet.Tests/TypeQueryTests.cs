@@ -14,7 +14,7 @@ public class TypeQueryTests
         var buffer = new byte[2048];
         
         // Initialize as array
-        var position = Lite3.InitializeArray(buffer);
+        Lite3.InitializeArray(buffer, out var position);
         
         // Append various types
         Lite3.ArrayAppendString(buffer, ref position, 0, "hello"u8);
@@ -128,11 +128,11 @@ public class TypeQueryTests
         var buffer = new byte[2048];
         
         // Test object root
-        Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out _);
         Lite3.GetRootType(buffer).ShouldBe(Lite3Core.ValueKind.Object);
         
         // Test array root
-        Lite3.InitializeArray(buffer);
+        Lite3.InitializeArray(buffer, out _);
         Lite3.GetRootType(buffer).ShouldBe(Lite3Core.ValueKind.Array);
     }
 

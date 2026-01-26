@@ -35,7 +35,7 @@ The following example using the Buffer API outputs `Max Retries: 3`.
 ```csharp
 var buffer = new byte[1024];
 
-var position = Lite3.InitializeObject(buffer);
+Lite3.InitializeObject(buffer, out var position);
 Lite3.SetString(buffer, ref position, 0, "app_name"u8, "demo_app"u8);
 Lite3.SetLong(buffer, ref position, 0, "max_retries"u8, 3);
 Lite3.SetBool(buffer, ref position, 0, "debug_mode"u8, false);

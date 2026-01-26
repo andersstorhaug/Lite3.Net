@@ -10,8 +10,7 @@ public class JohnDoeTests
     {
         Span<byte> buffer = new byte[2048];
 
-        var position = Lite3.InitializeObject(buffer);
-
+        Lite3.InitializeObject(buffer, out var position);
         Lite3.SetLong(buffer, ref position, 0, "user_id"u8, 12345);
         Lite3.SetString(buffer, ref position, 0, "username"u8, "jdoe"u8);
         Lite3.SetString(buffer, ref position, 0, "email_address"u8, "jdoe@example.com"u8);

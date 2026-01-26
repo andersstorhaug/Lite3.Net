@@ -560,7 +560,7 @@ public static unsafe partial class Lite3Core
     ///         <em>Ported from C <c>lite3_init_obj</c>.</em>
     ///     </para>
     /// </remarks>
-    [Lite3Api(ReturnArg = nameof(position))]
+    [Lite3Api]
     public static Status InitializeObject(Span<byte> buffer, out int position)
     {
         position = 0;
@@ -591,7 +591,7 @@ public static unsafe partial class Lite3Core
     ///         <em>Ported from C <c>lite3_init_arr</c>.</em>
     ///     </para>
     /// </remarks>
-    [Lite3Api(ReturnArg = nameof(position))]
+    [Lite3Api]
     public static Status InitializeArray(Span<byte> buffer, out int position)
     {
         position = 0;

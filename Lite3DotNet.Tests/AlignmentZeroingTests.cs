@@ -13,7 +13,7 @@ public class AlignmentZeroingTests
         // Fill buffer with non-zero garbage
         buffer.Fill(0xEE);
 
-        var position = Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out var position);
         
         // Object insert adds 99 bytes: LITE3_NODE_SIZE (96) + "a" (size 2 including \0) + key_tag (size 1)
         // 1 padding byte is inserted to reach 100 bytes, for 4 byte alignment.
@@ -25,7 +25,7 @@ public class AlignmentZeroingTests
         // Reset buffer to garbage for second test
         buffer.Fill(0xEE);
         
-        position = Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out position);
         
         // Object insert adds 112 bytes (LITE3_NODE_SIZE (96) + keyval (16))
         // key_tag(1) + "key1\0"(5) + val_tag(1) + str_len(4) + "val1\0"(5) = 16 bytes.

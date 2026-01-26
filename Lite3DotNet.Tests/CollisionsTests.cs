@@ -14,7 +14,7 @@ public class CollisionsTests
         var buffer = new byte[1024 * 64];
         var random = new Random(52073821);
 
-        var position = Lite3.InitializeObject(buffer);
+        Lite3.InitializeObject(buffer, out var position);
 
         const int keyLength = 2;
         
