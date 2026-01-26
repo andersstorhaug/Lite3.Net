@@ -278,15 +278,19 @@ public static class Lite3JsonDecoder
         ref Utf8JsonReader reader)
     {
         var replayToken = false;
-        
+
+        Lite3Core.Status status;
         do
         {
             if (position == 0)
-                return DecodeDocument(ref frames, buffer, ref position, replayToken, ref reader);
-            
+            {
+                if ((status = DecodeDocument(ref frames, buffer, ref position, replayToken, ref reader)) < 0)
+                    throw status.AsException(); // Resize and/or underflow should never happen on the first token
+            }
+
             ref var frame = ref frames.PeekRef();
 
-            var status = frame.Kind switch
+            status = frame.Kind switch
             {
                 FrameKind.Object => DecodeObject(arrayPool, ref frames, replayToken, ref reader),
                 FrameKind.ObjectSwitch => DecodeObjectSwitch(arrayPool, ref frames, buffer, ref position, replayToken, ref reader),
