@@ -200,6 +200,8 @@ public static class Lite3JsonDecoder
 
             while (!frames.IsEmpty())
                 frames.Pop(arrayPool);
+
+            throw;
         }
         finally
         {
@@ -259,6 +261,8 @@ public static class Lite3JsonDecoder
 
             while (!frames.IsEmpty())
                 frames.Pop(arrayPool);
+
+            throw;
         }
 
         return (buffer, position);
