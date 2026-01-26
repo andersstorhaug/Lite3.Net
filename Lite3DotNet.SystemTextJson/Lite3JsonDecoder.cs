@@ -137,12 +137,12 @@ public static class Lite3JsonDecoder
                 var readSize = targetReadSize > MinReadSize
                     ? Math.Min(targetReadSize + ReadSlack, MaxReadBufferSize)
                     : MinReadSize;
-                
+
                 var result = await pipeReader.ReadAtLeastAsync(readSize, cancellationToken).ConfigureAwait(false);
 
                 var isCompleted = result.IsCompleted;
                 var readerBuffer = result.Buffer;
-                
+
                 if (isCompleted && readerBuffer.IsEmpty)
                 {
                     pipeReader.AdvanceTo(readerBuffer.End);
@@ -151,9 +151,9 @@ public static class Lite3JsonDecoder
 
                 if (readerBuffer.Length > MaxReadBufferSize)
                     throw new InvalidDataException("JSON token exceeds maximum buffer size.");
-                
+
                 var jsonReader = new Utf8JsonReader(readerBuffer, isCompleted, readerState);
-                
+
                 var status = DecodeCore(
                     arrayPool,
                     ref frames,
@@ -167,12 +167,14 @@ public static class Lite3JsonDecoder
                 {
                     case Lite3Core.Status.NeedsMoreData:
                         if (jsonReader.BytesConsumed == 0)
-                            targetReadSize = targetReadSize >= MaxReadBufferSize / 2 ? MaxReadBufferSize : targetReadSize * 2;
+                            targetReadSize = targetReadSize >= MaxReadBufferSize / 2
+                                ? MaxReadBufferSize
+                                : targetReadSize * 2;
                         break;
-                    
+
                     case < 0:
                         throw status.AsException();
-                    
+
                     default:
                         targetReadSize = minReadSize;
                         break;
@@ -182,14 +184,22 @@ public static class Lite3JsonDecoder
                 {
                     if (readerBuffer.Length != jsonReader.BytesConsumed)
                         throw new JsonException("Trailing data after JSON payload.");
-                    
+
                     pipeReader.AdvanceTo(readerBuffer.End);
                     break;
                 }
-                
+
                 readerState = jsonReader.CurrentState;
                 pipeReader.AdvanceTo(readerBuffer.GetPosition(jsonReader.BytesConsumed));
             }
+        }
+        catch
+        {
+            if (isRentedBuffer)
+                arrayPool.Return(buffer);
+
+            while (!frames.IsEmpty())
+                frames.Pop(arrayPool);
         }
         finally
         {
@@ -220,25 +230,37 @@ public static class Lite3JsonDecoder
         
         var position = 0;
         var frames = new FrameStack(new Frame[FrameStackSize]);
-        var jsonReader = new Utf8JsonReader(utf8Json, isFinalBlock: true, new JsonReaderState());
 
-        do
+        try
         {
-            var status = DecodeCore(arrayPool,
-                ref frames,
-                ref buffer,
-                growBuffer,
-                ref isRentedBuffer,
-                ref position,
-                ref jsonReader);
-            
-            if (status < 0)
-                throw status.AsException();
-        } while (!frames.IsEmpty());
-        
-        if (jsonReader.BytesConsumed != utf8Json.Length)
-            throw new JsonException("Trailing data after JSON payload.");
-        
+            var jsonReader = new Utf8JsonReader(utf8Json, isFinalBlock: true, new JsonReaderState());
+
+            do
+            {
+                var status = DecodeCore(arrayPool,
+                    ref frames,
+                    ref buffer,
+                    growBuffer,
+                    ref isRentedBuffer,
+                    ref position,
+                    ref jsonReader);
+
+                if (status < 0)
+                    throw status.AsException();
+            } while (!frames.IsEmpty());
+
+            if (jsonReader.BytesConsumed != utf8Json.Length)
+                throw new JsonException("Trailing data after JSON payload.");
+        }
+        catch
+        {
+            if (isRentedBuffer)
+                arrayPool.Return(buffer);
+
+            while (!frames.IsEmpty())
+                frames.Pop(arrayPool);
+        }
+
         return (buffer, position);
     }
     
@@ -252,7 +274,7 @@ public static class Lite3JsonDecoder
         ref Utf8JsonReader reader)
     {
         var replayToken = false;
-                
+        
         do
         {
             if (position == 0)
