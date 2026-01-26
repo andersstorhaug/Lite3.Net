@@ -118,9 +118,6 @@ public static class Lite3JsonDecoder
         
         if (buffer == null)
         {
-            if (arrayPool == null)
-                throw new ArgumentNullException(nameof(arrayPool), "A buffer must be provided.");
-            
             buffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
             isRentedBuffer = true;
         }
@@ -223,9 +220,6 @@ public static class Lite3JsonDecoder
         
         if (buffer == null)
         {
-            if (arrayPool == null)
-                throw new ArgumentNullException(nameof(arrayPool), "A buffer must be provided.");
-            
             buffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
             isRentedBuffer = true;
         }
