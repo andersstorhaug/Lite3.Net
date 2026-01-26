@@ -25,7 +25,8 @@ public ref struct Lite3Context
         
         var buffer = arrayPool.Rent(initialCapacity);
         
-        buffer.AsSpan().Clear();
+        // Ensure that at least the root type tag is invalid
+        buffer[0] = (byte)Lite3Core.ValueKind.Invalid;
         
         return new  Lite3Context(buffer, position: 0, isRentedBuffer: true, arrayPool);
     }
