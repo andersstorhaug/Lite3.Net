@@ -277,17 +277,21 @@ public static class Lite3JsonDecoder
         ref int position,
         ref Utf8JsonReader reader)
     {
+        Lite3Core.Status status;
+        
+        if (position == 0)
+        {
+            if ((status = DecodeDocument(ref frames, buffer, ref position, ref reader)) < 0)
+            {
+                // Note: resize and/or underflow should never happen on the first token
+                throw status.AsException();
+            }
+        }
+        
         var replayToken = false;
 
-        Lite3Core.Status status;
         do
         {
-            if (position == 0)
-            {
-                if ((status = DecodeDocument(ref frames, buffer, ref position, replayToken, ref reader)) < 0)
-                    throw status.AsException(); // Resize and/or underflow should never happen on the first token
-            }
-
             ref var frame = ref frames.PeekRef();
 
             status = frame.Kind switch
@@ -319,12 +323,11 @@ public static class Lite3JsonDecoder
         ref FrameStack frames,
         byte[] buffer,
         ref int position,
-        bool replayToken,
         ref Utf8JsonReader reader)
     {
         Lite3Core.Status status;
 
-        if (!replayToken && !reader.Read())
+        if (!reader.Read())
             return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
 
         switch (reader.TokenType)
