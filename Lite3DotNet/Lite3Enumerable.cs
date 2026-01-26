@@ -69,6 +69,6 @@ public readonly ref struct Lite3Enumerable(ReadOnlySpan<byte> buffer, int offset
         /// <summary>
         ///     Gets the value entry.
         /// </summary>
-        public ReadOnlyValueEntry GetValue() => new(_buffer, Offset);
+        public ValueEntry GetValue() => new(_buffer, Offset);
     }
 }

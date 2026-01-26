@@ -200,7 +200,7 @@ public static unsafe partial class Lite3Core
         int offset,
         ReadOnlySpan<byte> key,
         scoped in KeyData keyData,
-        out ReadOnlyValueEntry value)
+        out ValueEntry value)
     {
         value = default;
 
@@ -267,7 +267,7 @@ public static unsafe partial class Lite3Core
                     var valueStartOffset = targetOffset;
                     if ((status = VerifyValue(buffer, ref targetOffset)) < 0)
                         return status;
-                    value = new ReadOnlyValueEntry(buffer, valueStartOffset);
+                    value = new ValueEntry(buffer, valueStartOffset);
                     return 0;
                 }
                 
@@ -374,7 +374,7 @@ public static unsafe partial class Lite3Core
     ///     <para>
     ///         Get the next item from an iterator.
     ///         To use in conjunction with value functions; the <see cref="offset" /> can be used with
-    ///         <see cref="ReadOnlyValueEntry" />.
+    ///         <see cref="ValueEntry" />.
     ///     </para>
     ///     <para>
     ///         <b>Warning</b>:
@@ -622,8 +622,8 @@ public static unsafe partial class Lite3Core
     ///     <para>
     ///         <b>Note</b>: this function expects the caller to write to:
     ///         <list type="number">
-    ///             <item><see cref="ValueEntry.Type" />: the value type (length of <see cref="ValueHeaderSize" />).</item>
-    ///             <item><see cref="ValueEntry.Value" />: the actual value (length of <see cref="valueLength" />).</item>
+    ///             <item><see cref="MutableValueEntry.Type" />: the value type (length of <see cref="ValueHeaderSize" />).</item>
+    ///             <item><see cref="MutableValueEntry.Value" />: the actual value (length of <see cref="valueLength" />).</item>
     ///         </list>
     ///     </para>
     ///     <para>
@@ -642,7 +642,7 @@ public static unsafe partial class Lite3Core
         scoped in KeyData keyData,
         int valueLength,
         out int valueStartOffset,
-        out ValueEntry value)
+        out MutableValueEntry value)
     {
         valueStartOffset = 0;
         value = default;
@@ -877,7 +877,7 @@ public static unsafe partial class Lite3Core
                             // zero out value
                             buffer.Slice(valueStartOffset, targetOffset - valueStartOffset).Clear();
                             // caller overwrites value in place
-                            value = new ValueEntry(buffer, valueStartOffset);
+                            value = new MutableValueEntry(buffer, valueStartOffset);
                             // TODO_C: add lost bytes to GC index
                             return 0;
                         }
@@ -965,7 +965,7 @@ public static unsafe partial class Lite3Core
                     }
                     
                     valueStartOffset = position;
-                    value = new ValueEntry(buffer, position);
+                    value = new MutableValueEntry(buffer, position);
                     position += ValueHeaderSize + valueLength;
                     
                     _logger.LogProbe("OK");

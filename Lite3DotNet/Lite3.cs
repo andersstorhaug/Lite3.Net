@@ -95,9 +95,9 @@ public static partial class Lite3
         }
     }
 
-    extension(Lite3Core.ReadOnlyValueEntry value)
+    extension(Lite3Core.ValueEntry value)
     {
-        /// <inheritdoc cref="Lite3Core.GetValueKind(in Lite3Core.ReadOnlyValueEntry)" />
+        /// <inheritdoc cref="Lite3Core.GetValueKind(in Lite3Core.ValueEntry)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Lite3Core.ValueKind GetValueKind() => Lite3Core.GetValueKind(value);
 

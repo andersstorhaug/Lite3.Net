@@ -97,12 +97,12 @@ public static unsafe partial class Lite3Core
     /// <summary>
     ///     <para>Represents a value inside a message buffer.</para>
     ///     <para>All values are prefixed with a 1-byte type tag, similar to tagged unions.</para>
-    ///     <para>To discover types inside a message, compare against <see cref="ValueEntry.Type" /></para>
+    ///     <para>To discover types inside a message, compare against <see cref="MutableValueEntry.Type" /></para>
     /// </summary>
     /// <remarks>
     ///     <em>Ported from C <c>lite3_val</c>.</em>
     /// </remarks>
-    public readonly ref struct ReadOnlyValueEntry(ReadOnlySpan<byte> buffer, int offset)
+    public readonly ref struct ValueEntry(ReadOnlySpan<byte> buffer, int offset)
     {
         private readonly ReadOnlySpan<byte> _buffer = buffer;
         internal ValueKind Type => (ValueKind)_buffer[Offset];
@@ -112,7 +112,7 @@ public static unsafe partial class Lite3Core
     }
     
     /// <remarks><em>Ported from C <c>lite3_val</c>.</em></remarks>
-    internal ref struct ValueEntry(Span<byte> buffer, int startOffset)
+    internal ref struct MutableValueEntry(Span<byte> buffer, int startOffset)
     {
         private Span<byte> _buffer = buffer;
         public ref byte Type => ref _buffer[startOffset];
@@ -558,7 +558,7 @@ public static unsafe partial class Lite3Core
     
     /// <remarks><em>Ported from C <c>_lite3_set_by_index</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Status SetByIndex(Span<byte> buffer, ref int position, int offset, uint index, int valueLength, out ValueEntry value)
+    private static Status SetByIndex(Span<byte> buffer, ref int position, int offset, uint index, int valueLength, out MutableValueEntry value)
     {
         Status status;
         value = default;
@@ -585,7 +585,7 @@ public static unsafe partial class Lite3Core
     
     /// <remarks><em>Ported from C <c>_lite3_set_by_append</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Status SetByAppend(Span<byte> buffer, ref int position, int offset, int valueLength, out ValueEntry value)
+    private static Status SetByAppend(Span<byte> buffer, ref int position, int offset, int valueLength, out MutableValueEntry value)
     {
         Status status;
         value = default;
@@ -1078,7 +1078,7 @@ public static unsafe partial class Lite3Core
     
     /// <remarks><em>Ported from C <c>_lite3_get_by_index</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Status GetByIndex(ReadOnlySpan<byte> buffer, int offset, uint index, out ReadOnlyValueEntry value)
+    private static Status GetByIndex(ReadOnlySpan<byte> buffer, int offset, uint index, out ValueEntry value)
     {
         Status status;
         value = default;
@@ -1472,7 +1472,7 @@ public static unsafe partial class Lite3Core
     /// </remarks>
     [Lite3Api(ReturnArg = nameof(value), KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Status Get(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out ReadOnlyValueEntry value)
+    public static Status Get(ReadOnlySpan<byte> buffer, int offset, ReadOnlySpan<byte> key, KeyData keyData, out ValueEntry value)
     {
         Status status;
         value = default;
@@ -2004,7 +2004,7 @@ public static unsafe partial class Lite3Core
     /// </remarks>
     [Lite3Api(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ValueKind GetValueKind(in ReadOnlyValueEntry entry)
+    public static ValueKind GetValueKind(in ValueEntry entry)
     {
         var type = entry.Type;
         return type < ValueKind.Invalid ? type : ValueKind.Invalid;
@@ -2029,7 +2029,7 @@ public static unsafe partial class Lite3Core
     /// </remarks>
     [Lite3Api(IsTryPattern = false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static int GetValueSize(in ReadOnlyValueEntry entry)
+    internal static int GetValueSize(in ValueEntry entry)
     {
         var type = entry.Type;
         
@@ -2041,60 +2041,60 @@ public static unsafe partial class Lite3Core
     
     /// <remarks><em>Ported from C <c>lite3_val_is_null</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsNull(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Null;
+    internal static bool ValueIsNull(ValueEntry entry) => entry.Type == ValueKind.Null;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_bool</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsBool(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Bool;
+    internal static bool ValueIsBool(ValueEntry entry) => entry.Type == ValueKind.Bool;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_i64</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsLong(ReadOnlyValueEntry entry) => entry.Type == ValueKind.I64;
+    internal static bool ValueIsLong(ValueEntry entry) => entry.Type == ValueKind.I64;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_f64</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsDouble(ReadOnlyValueEntry entry) => entry.Type == ValueKind.F64;
+    internal static bool ValueIsDouble(ValueEntry entry) => entry.Type == ValueKind.F64;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_bytes</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsBytes(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Bytes;
+    internal static bool ValueIsBytes(ValueEntry entry) => entry.Type == ValueKind.Bytes;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_str</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsString(ReadOnlyValueEntry entry) => entry.Type == ValueKind.String;
+    internal static bool ValueIsString(ValueEntry entry) => entry.Type == ValueKind.String;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_obj</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsObject(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Object;
+    internal static bool ValueIsObject(ValueEntry entry) => entry.Type == ValueKind.Object;
     
     /// <remarks><em>Ported from C <c>lite3_val_is_arr</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool ValueIsArray(ReadOnlyValueEntry entry) => entry.Type == ValueKind.Array;
+    internal static bool ValueIsArray(ValueEntry entry) => entry.Type == ValueKind.Array;
 
     /// <remarks><em>Ported from C <c>lite3_val_bool</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool GetValueBool(ReadOnlyValueEntry entry)
+    internal static bool GetValueBool(ValueEntry entry)
     {
         return entry.Value[0] == 1;
     }
     
     /// <remarks><em>Ported from C <c>lite3_val_i64</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static long GetValueLong(ReadOnlyValueEntry entry)
+    internal static long GetValueLong(ValueEntry entry)
     {
         return BinaryPrimitives.ReadInt64LittleEndian(entry.Value);
     }
     
     /// <remarks><em>Ported from C <c>lite3_val_f64</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static double GetValueDouble(ReadOnlyValueEntry entry)
+    internal static double GetValueDouble(ValueEntry entry)
     {
         return BinaryPrimitives.ReadDoubleLittleEndian(entry.Value);
     }
     
     /// <remarks><em>Ported from C <c>lite3_val_str</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ReadOnlySpan<byte> GetValueUtf8(ReadOnlyValueEntry entry)
+    internal static ReadOnlySpan<byte> GetValueUtf8(ValueEntry entry)
     {
         var length = (int)BinaryPrimitives.ReadUInt32LittleEndian(entry.Value);
         --length; // C#: no NULL-terminator
@@ -2103,7 +2103,7 @@ public static unsafe partial class Lite3Core
     
     /// <remarks><em>Ported from C <c>lite3_val_bytes</c>.</em></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ReadOnlySpan<byte> GetValueBytes(ReadOnlyValueEntry entry)
+    internal static ReadOnlySpan<byte> GetValueBytes(ValueEntry entry)
     {
         var length = BinaryPrimitives.ReadInt32LittleEndian(entry.Value);
         return entry.Value.Slice(BytesLengthSize, length);

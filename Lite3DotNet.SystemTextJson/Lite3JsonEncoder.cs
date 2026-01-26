@@ -70,7 +70,7 @@ public static class Lite3JsonEncoder
         return Encoding.UTF8.GetString(writer.WrittenSpan);
     }
     
-    private static Lite3Core.Status EncodeSwitch(ReadOnlySpan<byte> buffer, int nestingDepth, Lite3Core.ReadOnlyValueEntry value, ref Utf8JsonWriter writer)
+    private static Lite3Core.Status EncodeSwitch(ReadOnlySpan<byte> buffer, int nestingDepth, Lite3Core.ValueEntry value, ref Utf8JsonWriter writer)
     {
         Lite3Core.Status status;
         
