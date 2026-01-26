@@ -111,11 +111,11 @@ public sealed partial class Lite3Context : IDisposable
             ArrayPool<byte>.Shared.Return(Buffer);
     }
 
-    internal Lite3Core.Status Grow()
+    private Lite3Core.Status Grow()
     {
         var status = Lite3Buffer.Grow(_arrayPool, _isRentedBuffer, Buffer, out Buffer);
-
-        _isRentedBuffer = true;
+        
+        _isRentedBuffer = status == Lite3Core.Status.GrewBuffer;
         
         return status;
     }
