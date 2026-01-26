@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Lite3DotNet;
 
-public sealed class Lite3Context : IDisposable
+public sealed partial class Lite3Context : IDisposable
 {
     /// <summary>
     ///     <para>Create a context, optionally with a custom size.</para>

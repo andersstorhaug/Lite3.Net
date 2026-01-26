@@ -21,7 +21,6 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         CoreTypeName = "Lite3Core",
         PublicTypeName = "Lite3",
         ContextTypeName = "Lite3Context",
-        ContextExtensionsTypeName = $"{ContextTypeName}Extensions",
         CoreMethodPrefix = $"{CoreTypeName}.",
         CoreNamespace = $"{nameof(Lite3DotNet)}",
         AttributeNamespace = $"{CoreNamespace}.{nameof(Generators)}",
@@ -83,7 +82,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                     .AppendLine("using System.Runtime.CompilerServices;")
                     .Append("using static ").Append(CoreTypeName).AppendLine(";")
                     .AppendLine()
-                    .Append("public static class ").AppendLine(ContextExtensionsTypeName)
+                    .Append("public partial class ").AppendLine(ContextTypeName)
                     .AppendLine("{");
                 
                 foreach (var (method, methodIndex) in methodSymbols.Select(Index))
@@ -134,7 +133,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                 contextSource.AppendLine("}");
                 
                 context.AddSource($"Lite3.g.cs", primarySource.ToString());
-                context.AddSource($"Lite3ContextExtensions.g.cs", contextSource.ToString());
+                context.AddSource($"Lite3Context.g.cs", contextSource.ToString());
             }
         );
     }
@@ -210,7 +209,6 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         if (xmlComment != null)
         {
             var paramReturnLine = ReadOnlySpan<char>.Empty;
-            var paramIndex = -1;
             
             foreach (var line in xmlComment.EnumerateLines())
             {
@@ -223,7 +221,6 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                 const string paramTagSuffix = "\">";
 
                 var isParam = text.StartsWith(paramTagPrefix);
-                if (isParam) paramIndex++;
                 
                 if (!useTryPattern && returnArgName != null)
                 {
@@ -242,9 +239,6 @@ public class Lite3ApiGenerator : IIncrementalGenerator
 
                 if (isContextApi)
                 {
-                    if (isParam && paramIndex == 0)
-                        source.Append(indent).AppendLine("/// <param name=\"context\">The context.</param>");
-                    
                     if (isParam && text[paramTagPrefix.Length..].StartsWith("buffer"))
                         continue;
 
@@ -311,7 +305,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         source
             .Append(indent).AppendLine(InlineAttribute)
             .Append(indent)
-            .Append("public static ")
+            .Append(isContextApi ? "public " : "public static ")
             .Append(returnTypeName)
             .Append(" ")
             .Append(useTryPattern ? "Try" : null)
@@ -321,12 +315,6 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         var indexOffset = 0;
         foreach (var (param, index) in method.Parameters.Select(Index))
         {
-            if (isContextApi && index == 0)
-            {
-                source.Append("this ").Append(ContextTypeName).Append(" context");
-                indexOffset++;
-            }
-            
             if (
                 (isContextApi && param.Name == "buffer") ||
                 (isContextApi && param.Name == "position") ||
@@ -357,8 +345,8 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         if (isContextApi)
         {
             source
-                .Append(indent).AppendLine("ref var buffer = ref context.Buffer;")
-                .Append(indent).AppendLine("ref var position = ref context.Position;");
+                .Append(indent).AppendLine("ref var buffer = ref this.Buffer;")
+                .Append(indent).AppendLine("ref var position = ref this.Position;");
         }
 
         if (tryPattern)
@@ -398,7 +386,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         {
             source
                 .Append(indent).AppendLine("if (status == Status.InsufficientBuffer)")
-                .Append(++indent).AppendLine("status = context.Grow();");
+                .Append(++indent).AppendLine("status = Grow();");
             --indent;
             source.Append(--indent).AppendLine("} while (status == Status.GrewBuffer);");
         }
@@ -419,7 +407,7 @@ public class Lite3ApiGenerator : IIncrementalGenerator
         if (!useTryPattern)
         {
             if (isContextApi && isChainableMethod)
-                source.Append(indent).AppendLine("return context;");
+                source.Append(indent).AppendLine("return this;");
             else if (returnArgParam != null)
                 source.Append(indent).Append("return ").Append(returnArgParam.Name).AppendLine(";");
             else if (returnTypeName != "void")
