@@ -19,10 +19,15 @@ public static class Lite3JsonDecoder
     /// </summary>
     /// <param name="utf8Json">The source JSON in UTF-8.</param>
     /// <param name="buffer">The destination message buffer.</param>
+    /// <param name="arrayPool">
+    ///     Optional. The array pool for internal use; defaults to <see cref="ArrayPool{byte}.Shared" />.
+    /// </param>
     /// <returns>The resulting written position of the message buffer.</returns>
-    public static int Decode(ReadOnlySpan<byte> utf8Json, byte[] buffer)
+    public static int Decode(ReadOnlySpan<byte> utf8Json, byte[] buffer, ArrayPool<byte>? arrayPool = null)
     {
-        var (_, position) = DecodeImpl(buffer, utf8Json, arrayPool: null);
+        arrayPool ??= ArrayPool<byte>.Shared;
+        
+        var (_, position) = DecodeImpl(buffer, isRentedBuffer: false, growBuffer: false, utf8Json, arrayPool);
         
         return position;
     }
@@ -43,9 +48,10 @@ public static class Lite3JsonDecoder
     {
         arrayPool ??= ArrayPool<byte>.Shared;
         
-        var (buffer, position) = DecodeImpl(buffer: null, utf8Json, arrayPool);
+        var initialBuffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
+        var (buffer, position) = DecodeImpl(initialBuffer, isRentedBuffer: true, growBuffer: true, utf8Json, arrayPool);
         
-        return new DecodeResult(buffer, position, isRentedBuffer: true, arrayPool);
+        return new DecodeResult(buffer, position, arrayPool: arrayPool);
     }
     
     /// <summary>
@@ -54,19 +60,26 @@ public static class Lite3JsonDecoder
     /// <param name="pipeReader">The source pipe reader.</param>
     /// <param name="buffer">The destination message buffer.</param>
     /// <param name="minReadSize">Optional. The minimum source read size.</param>
+    /// <param name="arrayPool">
+    ///     Optional. The array pool for internal use; defaults to <see cref="ArrayPool{byte}.Shared" />.
+    /// </param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The resulting written position of the message buffer.</returns>
-    public static async Task<int> DecodeAsync(
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
+    public static async ValueTask<int> DecodeAsync(
         PipeReader pipeReader,
         byte[] buffer,
         int minReadSize = MinReadSize,
+        ArrayPool<byte>? arrayPool = null,
         CancellationToken cancellationToken = default)
     {
-        var (_, position, _) = await DecodeAsyncImpl(
+        var (_, position) = await DecodeAsyncImpl(
             buffer,
+            isRentedBuffer: false,
+            growBuffer: false,
             pipeReader,
             minReadSize,
-            arrayPool: null,
+            arrayPool ?? ArrayPool<byte>.Shared,
             cancellationToken).ConfigureAwait(false);
         
         return position;
@@ -86,7 +99,9 @@ public static class Lite3JsonDecoder
     /// <remarks>
     ///     <b>Warning</b>: The caller must dispose the returned <see cref="DecodeResult" /> for the buffer to return to the pool.
     /// </remarks>
-    public static async Task<DecodeResult> DecodeAsync(
+    /// 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
+    public static async ValueTask<DecodeResult> DecodeAsync(
         PipeReader pipeReader,
         int minReadSize = MinReadSize,
         ArrayPool<byte>? arrayPool = null,
@@ -94,34 +109,78 @@ public static class Lite3JsonDecoder
     {
         arrayPool ??= ArrayPool<byte>.Shared;
         
-        var (buffer, position, isRentedBuffer) = await DecodeAsyncImpl(
-            buffer: null,
+        var initialBuffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
+        
+        var (buffer, position) = await DecodeAsyncImpl(
+            initialBuffer,
+            isRentedBuffer: true,
+            growBuffer: true,
             pipeReader,
             minReadSize,
             arrayPool,
             cancellationToken).ConfigureAwait(false);
         
-        return new DecodeResult(buffer, position, isRentedBuffer, arrayPool);
+        return new DecodeResult(buffer, position, arrayPool);
     }
     
-    private static async Task<(byte[] Buffer, int Position, bool IsRentedBuffer)> DecodeAsyncImpl(
-        byte[]? buffer,
+    private static (byte[] Buffer, int Position) DecodeImpl(
+        byte[] buffer,
+        bool isRentedBuffer,
+        bool growBuffer,
+        ReadOnlySpan<byte> utf8Json,
+        ArrayPool<byte> arrayPool)
+    {
+        var position = 0;
+        var frames = ArrayPool<Frame>.Shared.Rent(FrameStackSize);
+        var stack = new FrameStack(frames);
+
+        try
+        {
+            var jsonReader = new Utf8JsonReader(utf8Json, isFinalBlock: true, new JsonReaderState());
+
+            var status = DecodeCore(
+                arrayPool,
+                ref stack,
+                ref buffer,
+                isRentedBuffer,
+                growBuffer,
+                ref position,
+                ref jsonReader);
+
+            if (status < 0)
+                throw status.AsException();
+
+            if (jsonReader.BytesConsumed != utf8Json.Length)
+                throw new JsonException("Trailing data after JSON payload.");
+        }
+        catch
+        {
+            if (isRentedBuffer)
+                arrayPool.Return(buffer);
+
+            while (!stack.IsEmpty())
+                stack.Pop(arrayPool);
+
+            throw;
+        }
+        finally
+        {
+            ArrayPool<Frame>.Shared.Return(frames);
+        }
+
+        return (buffer, position);
+    }
+    
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
+    private static async ValueTask<(byte[] Buffer, int Position)> DecodeAsyncImpl(
+        byte[] buffer,
+        bool isRentedBuffer,
+        bool growBuffer,
         PipeReader pipeReader,
         int minReadSize,
-        ArrayPool<byte>? arrayPool,
+        ArrayPool<byte> arrayPool,
         CancellationToken cancellationToken)
     {
-        var growBuffer = arrayPool != null;
-        var isRentedBuffer = false;
-        
-        arrayPool ??= ArrayPool<byte>.Shared;
-        
-        if (buffer == null)
-        {
-            buffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
-            isRentedBuffer = true;
-        }
-        
         var readerState = default(JsonReaderState);
         var targetReadSize = minReadSize;
         var position = 0;
@@ -156,8 +215,8 @@ public static class Lite3JsonDecoder
                     arrayPool,
                     ref stack,
                     ref buffer,
+                    isRentedBuffer,
                     growBuffer,
-                    ref isRentedBuffer,
                     ref position,
                     ref jsonReader);
 
@@ -208,62 +267,6 @@ public static class Lite3JsonDecoder
             await pipeReader.CompleteAsync().ConfigureAwait(false);
         }
 
-        return (buffer, position, isRentedBuffer);
-    }
-    
-    private static (byte[] Buffer, int Position) DecodeImpl(
-        byte[]? buffer,
-        ReadOnlySpan<byte> utf8Json,
-        ArrayPool<byte>? arrayPool)
-    {
-        var growBuffer = arrayPool != null;
-        var isRentedBuffer = false;
-        
-        arrayPool ??= ArrayPool<byte>.Shared;
-        
-        if (buffer == null)
-        {
-            buffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
-            isRentedBuffer = true;
-        }
-        
-        var position = 0;
-        var frames = ArrayPool<Frame>.Shared.Rent(FrameStackSize);
-        var stack = new FrameStack(frames);
-
-        try
-        {
-            var jsonReader = new Utf8JsonReader(utf8Json, isFinalBlock: true, new JsonReaderState());
-
-            var status = DecodeCore(arrayPool,
-                ref stack,
-                ref buffer,
-                growBuffer,
-                ref isRentedBuffer,
-                ref position,
-                ref jsonReader);
-
-            if (status < 0)
-                throw status.AsException();
-
-            if (jsonReader.BytesConsumed != utf8Json.Length)
-                throw new JsonException("Trailing data after JSON payload.");
-        }
-        catch
-        {
-            if (isRentedBuffer)
-                arrayPool.Return(buffer);
-
-            while (!stack.IsEmpty())
-                stack.Pop(arrayPool);
-
-            throw;
-        }
-        finally
-        {
-            ArrayPool<Frame>.Shared.Return(frames);
-        }
-
         return (buffer, position);
     }
     
@@ -271,8 +274,8 @@ public static class Lite3JsonDecoder
         ArrayPool<byte> arrayPool,
         ref FrameStack stack,
         ref byte[] buffer,
+        bool isRentedBuffer,
         bool growBuffer,
-        ref bool isRentedBuffer,
         ref int position,
         ref Utf8JsonReader reader)
     {
@@ -609,7 +612,6 @@ public static class Lite3JsonDecoder
         return reader.ValueSpan;
     }
 
-    [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
     private struct FrameStack(Frame[] frames)
     {
         private Frame[] _frames = frames;
@@ -716,17 +718,13 @@ public static class Lite3JsonDecoder
         public Span<byte> AsSpan() => MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref _0, 12));
     }
 
-    public sealed class DecodeResult(byte[] buffer, int position, bool isRentedBuffer, ArrayPool<byte> arrayPool)
+    public sealed class DecodeResult(byte[] buffer, int position, ArrayPool<byte> arrayPool)
         : IDisposable
     {
         public readonly byte[] Buffer = buffer;
         public readonly int Position = position;
         public readonly ArrayPool<byte> ArrayPool = arrayPool;
 
-        public void Dispose()
-        {
-            if (isRentedBuffer)
-                ArrayPool.Return(Buffer);
-        }
+        public void Dispose() => ArrayPool.Return(Buffer);
     }
 }
