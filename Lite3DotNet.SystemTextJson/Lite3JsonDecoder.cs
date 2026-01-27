@@ -206,9 +206,6 @@ public static class Lite3JsonDecoder
                     break;
                 }
 
-                if (readerBuffer.Length > MaxReadBufferSize)
-                    throw new InvalidDataException("JSON token exceeds maximum buffer size.");
-
                 var jsonReader = new Utf8JsonReader(readerBuffer, isCompleted, readerState);
 
                 var status = DecodeCore(
@@ -222,11 +219,16 @@ public static class Lite3JsonDecoder
 
                 switch (status)
                 {
-                    case Lite3Core.Status.NeedsMoreData:
-                        if (jsonReader.BytesConsumed == 0)
-                            targetReadSize = targetReadSize >= MaxReadBufferSize / 2
-                                ? MaxReadBufferSize
-                                : targetReadSize * 2;
+                    case Lite3Core.Status.NeedsMoreData when !isCompleted:
+                        if (jsonReader.BytesConsumed > 0)
+                            break;
+                        
+                        if (targetReadSize >= MaxReadBufferSize)
+                            throw new InvalidDataException("Input requires buffering more than the maximum allowed size.");
+                        
+                        targetReadSize = targetReadSize >= MaxReadBufferSize / 2
+                            ? MaxReadBufferSize
+                            : targetReadSize * 2;
                         break;
 
                     case < 0:
@@ -263,8 +265,6 @@ public static class Lite3JsonDecoder
         finally
         {
             ArrayPool<Frame>.Shared.Return(frames);
-            
-            await pipeReader.CompleteAsync().ConfigureAwait(false);
         }
 
         return (buffer, position);
@@ -330,7 +330,7 @@ public static class Lite3JsonDecoder
         Lite3Core.Status status;
 
         if (!reader.Read())
-            return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
+            return Lite3Core.Status.NeedsMoreData;
 
         switch (reader.TokenType)
         {
@@ -377,7 +377,7 @@ public static class Lite3JsonDecoder
             return stack.Push(Frame.ForObjectSwitch(offset, GetKeyRef(arrayPool, ref reader)));
         }
 
-        return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
+        return Lite3Core.Status.NeedsMoreData;
     }
     
     private static Lite3Core.Status DecodeObjectSwitch(
@@ -485,7 +485,7 @@ public static class Lite3JsonDecoder
             return stack.Push(Frame.ForArraySwitch(offset));
         }
         
-        return reader.IsFinalBlock ? Lite3Core.Status.InsufficientBuffer : Lite3Core.Status.NeedsMoreData;
+        return Lite3Core.Status.NeedsMoreData;
     }
     
     private static Lite3Core.Status DecodeArraySwitch(
@@ -626,7 +626,7 @@ public static class Lite3JsonDecoder
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Lite3Core.Status Push(in Frame frame)
         {
-            if (_index > _frames.Length - 1) return Lite3Core.Status.JsonNestingDepthExceededMax;
+            if (_index >= _frames.Length - 1) return Lite3Core.Status.JsonNestingDepthExceededMax;
             _frames[++_index] = frame;
             return 0;
         }

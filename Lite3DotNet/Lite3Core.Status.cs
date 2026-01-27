@@ -29,7 +29,6 @@ public static partial class Lite3Core
         ExpectedJsonValue,
         InsufficientBuffer,
         NeedsMoreData,
-        BufferOverflow,
         
         None = 0,
         IteratorDone = 1,
@@ -63,8 +62,7 @@ public static partial class Lite3Core
         Status.ExpectedJsonArrayOrObject => new InvalidOperationException("Expected JSON array or object."),
         Status.ExpectedJsonValue => new InvalidOperationException("Expected JSON value."),
         Status.JsonNestingDepthExceededMax => new InvalidOperationException("JSON nesting depth exceeded max."),
-        Status.NeedsMoreData => new InvalidOperationException("Needs more data."),
-        Status.BufferOverflow => new InvalidOperationException("Buffer overflow."),
+        Status.NeedsMoreData => new InvalidOperationException("Unexpected end of input."),
         
         _ => new InvalidOperationException($"An unknown error occurred ({status}).")
     };
