@@ -261,6 +261,7 @@ public static class Lite3JsonDecoder
         {
             if (decodeState.PendingKey is { } pendingKey)
                 arrayPool.Return(pendingKey);
+            
             ArrayPool<Frame>.Shared.Return(frames);
         }
 
@@ -304,8 +305,16 @@ public static class Lite3JsonDecoder
                     var key =
                         state.PendingKey != null ? state.PendingKey.AsSpan(0, state.PendingKeyLength) :
                         ReadUtf8(arrayPool, ref reader, out rentedKey);
-                    
-                    status = DecodeObjectSwitch(arrayPool, ref state, buffer, ref position, replayToken, key, ref reader);
+
+                    try
+                    {
+                        status = DecodeObjectSwitch(arrayPool, ref state, buffer, ref position, replayToken, key, ref reader);
+                    }
+                    finally
+                    {
+                        if (rentedKey != null)
+                            arrayPool.Return(rentedKey);
+                    }
 
                     if (status >= 0)
                     {
