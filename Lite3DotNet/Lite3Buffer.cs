@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Lite3DotNet;
 
-public static class Lite3Buffer
+internal static class Lite3Buffer
 {
     public const int MaxBufferSize = int.MaxValue;
     public const int MinBufferSize = 1024;

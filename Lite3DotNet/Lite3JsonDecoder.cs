@@ -2,10 +2,9 @@ using System.Buffers;
 using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace Lite3DotNet.SystemTextJson;
+namespace Lite3DotNet;
 
 public static class Lite3JsonDecoder
 {
@@ -13,15 +12,14 @@ public static class Lite3JsonDecoder
     private const int MaxReadBufferSize = 65536;
     private const int ReadSlack = 64;
     private const int FrameStackSize = JsonConstants.NestingDepthMax * 2 + 1;
+    private const int StackallocStringLength = 256;
 
     /// <summary>
     ///     Convert from JSON and write to a provided destination message buffer.
     /// </summary>
     /// <param name="utf8Json">The source JSON in UTF-8.</param>
     /// <param name="buffer">The destination message buffer.</param>
-    /// <param name="arrayPool">
-    ///     Optional. The array pool for internal use; defaults to <see cref="ArrayPool{byte}.Shared" />.
-    /// </param>
+    /// <param name="arrayPool">Optional. The array pool for internal use.</param>
     /// <returns>The resulting written position of the message buffer.</returns>
     public static int Decode(ReadOnlySpan<byte> utf8Json, byte[] buffer, ArrayPool<byte>? arrayPool = null)
     {
@@ -36,19 +34,20 @@ public static class Lite3JsonDecoder
     ///     Convert from JSON and write to a growable destination message buffer.
     /// </summary>
     /// <param name="utf8Json">The source JSON in UTF-8.</param>
-    /// <param name="arrayPool">
-    ///     Optional. The array pool for resizing the output buffer; defaults to
-    ///     <see cref="ArrayPool{byte}.Shared" />.
-    /// </param>
+    /// <param name="initialCapacity">Optional. The initial capacity for the message buffer.</param>
+    /// <param name="arrayPool">Optional. The array pool for resizing the output buffer and internal use.</param>
     /// <returns>A disposable <see cref="DecodeResult" /> containing the resulting message buffer, written position, and buffer pool.</returns>
     /// <remarks>
     ///     <b>Warning</b>: The caller must dispose the returned <see cref="DecodeResult" /> for the buffer to return to the pool.
     /// </remarks>
-    public static DecodeResult Decode(ReadOnlySpan<byte> utf8Json, ArrayPool<byte>? arrayPool = null)
+    public static DecodeResult Decode(
+        ReadOnlySpan<byte> utf8Json,
+        int initialCapacity = Lite3Buffer.MinBufferSize,
+        ArrayPool<byte>? arrayPool = null)
     {
         arrayPool ??= ArrayPool<byte>.Shared;
         
-        var initialBuffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
+        var initialBuffer = arrayPool.Rent(initialCapacity);
         var (buffer, position) = DecodeImpl(initialBuffer, isRentedBuffer: true, growBuffer: true, utf8Json, arrayPool);
         
         return new DecodeResult(buffer, position, arrayPool: arrayPool);
@@ -60,9 +59,7 @@ public static class Lite3JsonDecoder
     /// <param name="pipeReader">The source pipe reader.</param>
     /// <param name="buffer">The destination message buffer.</param>
     /// <param name="minReadSize">Optional. The minimum source read size.</param>
-    /// <param name="arrayPool">
-    ///     Optional. The array pool for internal use; defaults to <see cref="ArrayPool{byte}.Shared" />.
-    /// </param>
+    /// <param name="arrayPool">Optional. The array pool for internal use.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The resulting written position of the message buffer.</returns>
     [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
@@ -90,10 +87,8 @@ public static class Lite3JsonDecoder
     /// </summary>
     /// <param name="pipeReader">The source pipe reader.</param>
     /// <param name="minReadSize">Optional. The minimum source read size.</param>
-    /// <param name="arrayPool">
-    ///     Optional. The array pool for resizing the output buffer; defaults to
-    ///     <see cref="ArrayPool{byte}.Shared" />.
-    /// </param>
+    /// <param name="initialCapacity">Optional. The initial capacity for the message buffer and internal use.</param>
+    /// <param name="arrayPool">Optional. The array pool for resizing the output buffer.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A disposable <see cref="DecodeResult" /> containing the resulting message buffer, written position, and buffer pool.</returns>
     /// <remarks>
@@ -104,12 +99,13 @@ public static class Lite3JsonDecoder
     public static async ValueTask<DecodeResult> DecodeAsync(
         PipeReader pipeReader,
         int minReadSize = MinReadSize,
+        int initialCapacity = Lite3Buffer.MinBufferSize,
         ArrayPool<byte>? arrayPool = null,
         CancellationToken cancellationToken = default)
     {
         arrayPool ??= ArrayPool<byte>.Shared;
         
-        var initialBuffer = arrayPool.Rent(Lite3Buffer.MinBufferSize);
+        var initialBuffer = arrayPool.Rent(initialCapacity);
         
         var (buffer, position) = await DecodeAsyncImpl(
             initialBuffer,
@@ -127,12 +123,13 @@ public static class Lite3JsonDecoder
         byte[] buffer,
         bool isRentedBuffer,
         bool growBuffer,
-        ReadOnlySpan<byte> utf8Json,
+        scoped ReadOnlySpan<byte> utf8Json,
         ArrayPool<byte> arrayPool)
     {
         var position = 0;
-        var frames = ArrayPool<Frame>.Shared.Rent(FrameStackSize);
-        var decodeState = new DecodeState(frames);
+        Span<Frame> frames = stackalloc Frame[FrameStackSize];
+        var stack = new FrameStack(frames);
+        var decodeState = new DecodeState();
 
         try
         {
@@ -141,6 +138,7 @@ public static class Lite3JsonDecoder
             var status = DecodeCore(
                 arrayPool,
                 ref decodeState,
+                ref stack,
                 ref buffer,
                 isRentedBuffer,
                 growBuffer,
@@ -162,10 +160,6 @@ public static class Lite3JsonDecoder
                 arrayPool.Return(buffer);
             throw;
         }
-        finally
-        {
-            ArrayPool<Frame>.Shared.Return(frames);
-        }
 
         return (buffer, position);
     }
@@ -183,8 +177,9 @@ public static class Lite3JsonDecoder
         var readerState = default(JsonReaderState);
         var targetReadSize = minReadSize;
         var position = 0;
+        var decodeState = new DecodeState();
         var frames = ArrayPool<Frame>.Shared.Rent(FrameStackSize);
-        var decodeState = new DecodeState(frames);
+        var stackIndex = -1;
 
         try
         {
@@ -206,10 +201,12 @@ public static class Lite3JsonDecoder
                 }
 
                 var jsonReader = new Utf8JsonReader(readerBuffer, isCompleted, readerState);
+                var stack = new FrameStack(frames, stackIndex);
 
                 var status = DecodeCore(
                     arrayPool,
                     ref decodeState,
+                    ref stack,
                     ref buffer,
                     isRentedBuffer,
                     growBuffer,
@@ -248,7 +245,8 @@ public static class Lite3JsonDecoder
                 }
 
                 readerState = jsonReader.CurrentState;
-                pipeReader.AdvanceTo(readerBuffer.GetPosition(jsonReader.BytesConsumed));
+                stackIndex = stack.Index;
+                pipeReader.AdvanceTo(readerBuffer.GetPosition(jsonReader.BytesConsumed), readerBuffer.End);
             }
         }
         catch
@@ -271,6 +269,7 @@ public static class Lite3JsonDecoder
     private static Lite3Core.Status DecodeCore(
         ArrayPool<byte> arrayPool,
         ref DecodeState state,
+        ref FrameStack stack,
         ref byte[] buffer,
         bool isRentedBuffer,
         bool growBuffer,
@@ -281,46 +280,73 @@ public static class Lite3JsonDecoder
         
         if (position == 0)
         {
-            if ((status = DecodeDocument(ref state, buffer, ref position, ref reader)) < 0)
+            if ((status = DecodeDocument(ref stack, buffer, ref position, ref reader)) < 0)
             {
                 // Note: resize and/or underflow should never happen on the first token
                 throw status.AsException();
             }
         }
-        
+
         var replayToken = false;
 
         do
         {
-            ref var frame = ref state.Stack.PeekRef();
+            Process(ref stack, ref reader, ref state, ref buffer, ref position);
+            
+            if (status < 0)
+                return status;
+        } while (!stack.IsEmpty());
+
+        return 0;
+
+        // Local function for use of `stackalloc`
+        void Process(
+            ref FrameStack stack,
+            ref Utf8JsonReader reader,
+            ref DecodeState state,
+            ref byte[] buffer,
+            ref int position)
+        {
+            ref var frame = ref stack.PeekRef();
 
             switch (frame.Kind)
             {
                 case FrameKind.Object:
-                    status = DecodeObject(ref state, replayToken, ref reader);
+                    status = DecodeObject(ref stack, replayToken, ref reader);
                     break;
                 
                 case FrameKind.ObjectSwitch:
-                    var rentedKey = default(byte[]?);
+                    var readMethod = GetStringReadMethod(ref reader, out var bufferLength);
+                    
+                    var rentedBuffer = default(byte[]?);
+                    
+                    var spanBuffer = readMethod is > ReadMethod.StackallocMarker and < ReadMethod.PooledMarker
+                        ? stackalloc byte[StackallocStringLength]
+                        : default;
+                    
                     var key =
                         state.PendingKey != null ? state.PendingKey.AsSpan(0, state.PendingKeyLength) :
-                        ReadUtf8(arrayPool, ref reader, out rentedKey);
+                        readMethod == ReadMethod.FromSpan ? reader.ValueSpan :
+                        readMethod < ReadMethod.PooledMarker ? spanBuffer[..CopyString(readMethod, ref reader, spanBuffer, bufferLength)] :
+                        RentString(readMethod, ref reader, bufferLength, arrayPool, out rentedBuffer);
 
                     try
                     {
-                        status = DecodeObjectSwitch(arrayPool, ref state, buffer, ref position, replayToken, key, ref reader);
+                        status = DecodeObjectSwitch(arrayPool, ref stack, buffer, ref position, replayToken, key, ref reader);
                     }
-                    finally
+                    catch
                     {
-                        if (rentedKey != null)
-                            arrayPool.Return(rentedKey);
+                        if (rentedBuffer != null)
+                            arrayPool.Return(rentedBuffer);
+                        
+                        throw;
                     }
 
                     if (status >= 0)
                     {
-                        if (rentedKey != null)
+                        if (rentedBuffer != null)
                         {
-                            arrayPool.Return(rentedKey);
+                            arrayPool.Return(rentedBuffer);
                             break;
                         }
 
@@ -334,9 +360,9 @@ public static class Lite3JsonDecoder
 
                     if (status == Lite3Core.Status.NeedsMoreData && state.PendingKey == null)
                     {
-                        if (rentedKey != null)
+                        if (rentedBuffer != null)
                         {
-                            state.PendingKey = rentedKey;
+                            state.PendingKey = rentedBuffer;
                             state.PendingKeyLength = key.Length;
                             break;
                         }
@@ -348,11 +374,11 @@ public static class Lite3JsonDecoder
                     break;
                 
                 case FrameKind.Array:
-                    status = DecodeArray(ref state, replayToken, ref reader);
+                    status = DecodeArray(ref stack, replayToken, ref reader);
                     break;
                 
                 case FrameKind.ArraySwitch:
-                    status = DecodeArraySwitch(arrayPool, ref state, buffer, ref position, ref reader);
+                    status = DecodeArraySwitch(arrayPool, ref stack, buffer, ref position, ref reader);
                     break;
                 
                 default:
@@ -361,22 +387,17 @@ public static class Lite3JsonDecoder
 
             replayToken = false;
 
-            if (status == Lite3Core.Status.InsufficientBuffer && growBuffer)
-            {
-                status = Lite3Buffer.Grow(arrayPool, isRentedBuffer, buffer, out buffer);
-                isRentedBuffer = true;
-                replayToken = true;
-            }
+            if (status != Lite3Core.Status.InsufficientBuffer || !growBuffer) 
+                return;
             
-            if (status < 0)
-                return status;
-        } while (!state.Stack.IsEmpty());
-
-        return 0;
+            status = Lite3Buffer.Grow(arrayPool, isRentedBuffer, buffer, out buffer);
+            isRentedBuffer = true;
+            replayToken = true;
+        }
     }
 
     private static Lite3Core.Status DecodeDocument(
-        ref DecodeState state,
+        ref FrameStack stack,
         byte[] buffer,
         ref int position,
         ref Utf8JsonReader reader)
@@ -389,53 +410,47 @@ public static class Lite3JsonDecoder
         switch (reader.TokenType)
         {
             case JsonTokenType.StartObject:
-                if ((status = Lite3Core.InitializeObject(buffer, out position)) < 0)
-                    return status;
+                return (status = Lite3Core.InitializeObject(buffer, out position)) >= 0
+                    ? stack.Push(new Frame(FrameKind.Object, 0))
+                    : status;
 
-                return state.Stack.Push(new Frame(FrameKind.Object, 0));
             case JsonTokenType.StartArray:
-                if ((status = Lite3Core.InitializeArray(buffer, out position)) < 0)
-                    return status;
+                return (status = Lite3Core.InitializeArray(buffer, out position)) >= 0
+                    ? stack.Push(new Frame(FrameKind.Array, 0))
+                    : status;
 
-                return state.Stack.Push(new Frame(FrameKind.Array, 0));
             default:
                 return Lite3Core.Status.ExpectedJsonArrayOrObject;
         }
     }
     
     private static Lite3Core.Status DecodeObject(
-        ref DecodeState state,
+        ref FrameStack stack,
         bool replayToken,
         ref Utf8JsonReader reader)
     {
         if (reader.CurrentDepth > JsonConstants.NestingDepthMax)
             return Lite3Core.Status.JsonNestingDepthExceededMax;
         
-        ref var frame = ref state.Stack.PeekRef();
+        ref var frame = ref stack.PeekRef();
         var offset = frame.Offset;
         
         Debug.Assert(frame.Kind == FrameKind.Object);
+
+        if (!replayToken && !reader.Read())
+            return Lite3Core.Status.NeedsMoreData;
         
-        if (replayToken || reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-            {
-                state.Stack.Pop();
-                return 0;
-            }
+        if (reader.TokenType == JsonTokenType.EndObject)
+            return stack.Pop();
 
-            if (reader.TokenType != JsonTokenType.PropertyName)
-                return Lite3Core.Status.ExpectedJsonProperty;
-
-            return state.Stack.Push(new Frame(FrameKind.ObjectSwitch, offset));
-        }
-
-        return Lite3Core.Status.NeedsMoreData;
+        return reader.TokenType == JsonTokenType.PropertyName
+            ? stack.Push(new Frame(FrameKind.ObjectSwitch, offset))
+            : Lite3Core.Status.ExpectedJsonProperty;
     }
     
     private static Lite3Core.Status DecodeObjectSwitch(
         ArrayPool<byte> arrayPool,
-        ref DecodeState state,
+        ref FrameStack stack,
         byte[] buffer,
         ref int position,
         bool replayToken,
@@ -443,16 +458,19 @@ public static class Lite3JsonDecoder
         ref Utf8JsonReader reader)
     {
         Lite3Core.Status status;
+
+        if (key.IsEmpty)
+            return Lite3Core.Status.ExpectedNonEmptyKey;
         
-        ref var frame =  ref state.Stack.PeekRef();
+        ref var frame =  ref stack.PeekRef();
         var offset = frame.Offset;
-        
-        var keyData = Lite3Core.GetKeyData(key);
-        
+
         Debug.Assert(frame.Kind == FrameKind.ObjectSwitch);
 
         if (!replayToken && !reader.Read())
             return Lite3Core.Status.NeedsMoreData;
+
+        var keyData = Lite3Core.GetKeyData(key);
         
         switch (reader.TokenType)
         {
@@ -474,82 +492,83 @@ public static class Lite3JsonDecoder
             }
             case JsonTokenType.String:
             {
-                var value = ReadUtf8(arrayPool, ref reader, out var rentedBuffer);
-                status = Lite3Core.SetString(buffer, ref position, offset, key, keyData, value);
-                if (rentedBuffer != null)
-                    arrayPool.Return(rentedBuffer);
+                var readMethod = GetStringReadMethod(ref reader, out var bufferLength);
+
+                var spanBuffer = readMethod is > ReadMethod.StackallocMarker and < ReadMethod.PooledMarker
+                    ? stackalloc byte[StackallocStringLength]
+                    : default;
+
+                var rentedBuffer = default(byte[]?);
+                
+                var value =
+                    readMethod == ReadMethod.FromSpan ? reader.ValueSpan :
+                    readMethod < ReadMethod.PooledMarker ? spanBuffer[..CopyString(readMethod, ref reader, spanBuffer, bufferLength)] :
+                    RentString(readMethod, ref reader, bufferLength, arrayPool, out rentedBuffer);
+
+                try
+                {
+                    status = Lite3Core.SetString(buffer, ref position, offset, key, keyData, value);
+                }
+                finally
+                {
+                    if (rentedBuffer != null)
+                        arrayPool.Return(rentedBuffer);
+                }
                 break;
             }
             case JsonTokenType.StartObject:
             {
-                if ((status = Lite3Core.SetObject(buffer, ref position, offset, key, keyData, out var objectOffset)) >= 0)
-                {
-                    state.Stack.Pop();
-                    return state.Stack.Push(new Frame(FrameKind.Object, objectOffset));
-                }
+                if ((status = Lite3Core.SetObject(buffer, ref position, offset, key, keyData, out var objectOffset)) < 0)
+                    return status;
+                
+                stack.Pop();
+                return stack.Push(new Frame(FrameKind.Object, objectOffset));
 
-                return status;
             }
             case JsonTokenType.StartArray:
             {
-                if ((status = Lite3Core.SetArray(buffer, ref position, offset, key, keyData, out var arrayOffset)) >= 0)
-                {
-                    state.Stack.Pop();
-                    return state.Stack.Push(new Frame(FrameKind.Array, arrayOffset));
-                }
-
-                return status;
+                if ((status = Lite3Core.SetArray(buffer, ref position, offset, key, keyData, out var arrayOffset)) < 0)
+                    return status;
+                
+                stack.Pop();
+                return stack.Push(new Frame(FrameKind.Array, arrayOffset));
             }
             default:
                 status = Lite3Core.Status.ExpectedJsonValue;
                 break;
         }
 
-        if (status < 0)
-            return status;
-        
-        state.Stack.Pop();
-        
-        return status;
+        return status >= 0 ? stack.Pop() : status;
     }
     
-    private static Lite3Core.Status DecodeArray(
-        ref DecodeState state,
-        bool replayToken,
-        ref Utf8JsonReader reader)
+    private static Lite3Core.Status DecodeArray(ref FrameStack stack, bool replayToken, ref Utf8JsonReader reader)
     {
         if (reader.CurrentDepth > JsonConstants.NestingDepthMax)
             return Lite3Core.Status.JsonNestingDepthExceededMax;
         
-        ref var frame = ref state.Stack.PeekRef();
+        ref var frame = ref stack.PeekRef();
         var offset = frame.Offset;
         
         Debug.Assert(frame.Kind == FrameKind.Array);
-        
-        if (replayToken || reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndArray)
-            {
-                state.Stack.Pop();
-                return 0;
-            }
 
-            return state.Stack.Push(new Frame(FrameKind.ArraySwitch, offset));
-        }
-        
-        return Lite3Core.Status.NeedsMoreData;
+        if (!replayToken && !reader.Read())
+            return Lite3Core.Status.NeedsMoreData;
+
+        return reader.TokenType != JsonTokenType.EndArray
+            ? stack.Push(new Frame(FrameKind.ArraySwitch, offset))
+            : stack.Pop();
     }
     
     private static Lite3Core.Status DecodeArraySwitch(
         ArrayPool<byte> arrayPool,
-        ref DecodeState state,
+        ref FrameStack stack,
         byte[] buffer,
         ref int position,
         ref Utf8JsonReader reader)
     {
         Lite3Core.Status status;
         
-        ref var frame =  ref state.Stack.PeekRef();
+        ref var frame =  ref stack.PeekRef();
         var offset = frame.Offset;
         
         Debug.Assert(frame.Kind == FrameKind.ArraySwitch);
@@ -574,99 +593,191 @@ public static class Lite3JsonDecoder
             }
             case JsonTokenType.String:
             {
-                var value = ReadUtf8(arrayPool, ref reader, out var rentedBuffer);
-                status = Lite3Core.ArrayAppendString(buffer, ref position, offset, value);
-                if (rentedBuffer != null)
-                    arrayPool.Return(rentedBuffer);
+                var readMethod = GetStringReadMethod(ref reader, out var bufferLength);
+
+                var spanBuffer = readMethod is > ReadMethod.StackallocMarker and < ReadMethod.PooledMarker
+                    ? stackalloc byte[StackallocStringLength]
+                    : default;
+
+                var rentedBuffer = default(byte[]?);
+                
+                var value =
+                    readMethod == ReadMethod.FromSpan ? reader.ValueSpan :
+                    readMethod < ReadMethod.PooledMarker ? spanBuffer[..CopyString(readMethod, ref reader, spanBuffer, bufferLength)] :
+                    RentString(readMethod, ref reader, bufferLength, arrayPool, out rentedBuffer);
+
+                try
+                {
+                    status = Lite3Core.ArrayAppendString(buffer, ref position, offset, value);
+                }
+                finally
+                {
+                    if (rentedBuffer != null)
+                        arrayPool.Return(rentedBuffer);
+                }
                 break;
             }
             case JsonTokenType.StartObject:
             {
-                if ((status = Lite3Core.ArrayAppendObject(buffer, ref position, offset, out var objectOffset)) >= 0)
-                {
-                    state.Stack.Pop();
-                    return state.Stack.Push(new Frame(FrameKind.Object, objectOffset));
-                }
-
-                return status;
+                if ((status = Lite3Core.ArrayAppendObject(buffer, ref position, offset, out var objectOffset)) < 0)
+                    return status;
+                
+                stack.Pop();
+                return stack.Push(new Frame(FrameKind.Object, objectOffset));
             }
             case JsonTokenType.StartArray:
             {
-                if ((status = Lite3Core.ArrayAppendArray(buffer, ref position, offset, out var arrayOffset)) >= 0)
-                {
-                    state.Stack.Pop();
-                    return state.Stack.Push(new Frame(FrameKind.Array, arrayOffset));
-                }
-
-                return status;
+                if ((status = Lite3Core.ArrayAppendArray(buffer, ref position, offset, out var arrayOffset)) < 0)
+                    return status;
+                
+                stack.Pop();
+                return stack.Push(new Frame(FrameKind.Array, arrayOffset));
             }
             default:
                 status = Lite3Core.Status.ExpectedJsonValue;
                 break;
         }
         
-        state.Stack.Pop();
-
-        return status;
+        return status >= 0 ? stack.Pop() : status;
     }
-    
-    private static int ReadUtf8Pooled(ref Utf8JsonReader reader, ArrayPool<byte> arrayPool, out byte[] buffer)
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int CopyString(
+        ReadMethod method,
+        ref Utf8JsonReader reader,
+        scoped Span<byte> buffer,
+        int bufferLength)
     {
-        var length = reader.HasValueSequence
+        Debug.Assert(method is > ReadMethod.StackallocMarker and < ReadMethod.PooledMarker);
+        
+        switch (method)
+        {
+            case ReadMethod.StackallocFromSpan:
+                reader.ValueSpan.CopyTo(buffer);
+                return bufferLength;
+            case ReadMethod.StackallocFromSequence:
+                reader.ValueSequence.CopyTo(buffer);
+                return bufferLength;
+            case ReadMethod.StackallocFromCopyString:
+                return reader.CopyString(buffer);
+            default:
+                throw new InvalidOperationException("Invalid string read method.");
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ReadOnlySpan<byte> RentString(
+        ReadMethod method,
+        ref Utf8JsonReader reader,
+        int bufferLength,
+        ArrayPool<byte> arrayPool,
+        out byte[] buffer)
+    {
+        Debug.Assert(method is > ReadMethod.PooledMarker);
+        
+        buffer = arrayPool.Rent(bufferLength);
+        
+        var length = bufferLength;
+
+        try
+        {
+            switch (method)
+            {
+                case ReadMethod.PooledFromSpan:
+                    reader.ValueSpan.CopyTo(buffer);
+                    break;
+                case ReadMethod.PooledFromSequence:
+                    reader.ValueSequence.CopyTo(buffer);
+                    break;
+                case ReadMethod.PooledFromCopyString:
+                    length = reader.CopyString(buffer);
+                    break;
+                default:
+                    throw new InvalidOperationException("Invalid string read method.");
+            }
+
+            return buffer.AsSpan(0, length);
+        }
+        catch
+        {
+            arrayPool.Return(buffer);
+            throw;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ReadMethod GetStringReadMethod(ref Utf8JsonReader reader, out int bufferLength)
+    {
+        bufferLength = 0;
+        
+        var hasSequence = reader.HasValueSequence;
+        var isEscaped = reader.ValueIsEscaped;
+
+        if (!hasSequence && !isEscaped)
+            return ReadMethod.FromSpan;
+        
+        bufferLength = hasSequence
             ? checked((int)reader.ValueSequence.Length)
             : reader.ValueSpan.Length;
-            
-        buffer = arrayPool.Rent(length);
-        return reader.CopyString(buffer);
-    }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ReadOnlySpan<byte> ReadUtf8(
-        ArrayPool<byte> arrayPool,
-        ref Utf8JsonReader reader,
-        out byte[]? rentedBuffer)
-    {
-        if (reader.HasValueSequence || reader.ValueIsEscaped)
+        
+        if (bufferLength <= StackallocStringLength)
         {
-            var length = ReadUtf8Pooled(ref reader, arrayPool, out rentedBuffer);
-            return rentedBuffer.AsSpan(0, length);
+            if (isEscaped) return ReadMethod.StackallocFromCopyString;
+            return hasSequence ? ReadMethod.StackallocFromSequence : ReadMethod.StackallocFromSpan;
         }
 
-        rentedBuffer = null;
-        return reader.ValueSpan;
+        if (!isEscaped)
+            return hasSequence ? ReadMethod.PooledFromSequence : ReadMethod.PooledFromSpan;
+
+        return ReadMethod.PooledFromCopyString;
     }
 
-    private struct DecodeState(Frame[] frames)
+    private enum ReadMethod
     {
-        public FrameStack Stack = new(frames);
+        FromSpan = 1,
+        
+        StackallocMarker,
+        StackallocFromSpan,
+        StackallocFromSequence,
+        StackallocFromCopyString,
+        
+        PooledMarker,
+        PooledFromSpan,
+        PooledFromSequence,
+        PooledFromCopyString
+    }
+
+    private struct DecodeState
+    {
         public byte[]? PendingKey;
         public int PendingKeyLength;
     }
 
-    private struct FrameStack(Frame[] frames)
+    private ref struct FrameStack(Span<Frame> frames, int index = -1)
     {
-        private Frame[] _frames = frames;
-        private int _index = -1;
+        private readonly Span<Frame> _frames = frames;
+        private int _index = index;
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Index => _index;
         public bool IsEmpty() => _index < 0;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref Frame PeekRef() => ref _frames[_index];
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public Lite3Core.Status Push(in Frame frame)
         {
-            if (_index >= _frames.Length - 1) return Lite3Core.Status.JsonNestingDepthExceededMax;
+            Debug.Assert(_index >= _frames.Length - 1);
             _frames[++_index] = frame;
             return 0;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Pop() => _frames[_index--] = default;
+        public Lite3Core.Status Pop()
+        {
+            Debug.Assert(_index >= 0);
+            _frames[_index--] = default;
+            return 0;
+        }
     }
 
-    private enum FrameKind : byte
+    private enum FrameKind
     {
         Object,
         ObjectSwitch,
@@ -674,14 +785,13 @@ public static class Lite3JsonDecoder
         ArraySwitch
     }
     
-    [StructLayout(LayoutKind.Sequential)]
-    private struct Frame(FrameKind kind, int offset)
+    private readonly struct Frame(FrameKind kind, int offset)
     {
-        public FrameKind Kind = kind;
-        public int Offset = offset; 
+        public readonly FrameKind Kind = kind;
+        public readonly int Offset = offset; 
     }
 
-    public sealed class DecodeResult(byte[] buffer, int position, ArrayPool<byte> arrayPool)
+    public readonly struct DecodeResult(byte[] buffer, int position, ArrayPool<byte> arrayPool)
         : IDisposable
     {
         public readonly byte[] Buffer = buffer;

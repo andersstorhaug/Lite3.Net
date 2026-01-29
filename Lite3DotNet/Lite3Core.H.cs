@@ -42,11 +42,11 @@ public static unsafe partial class Lite3Core
     /// <remarks>From <c>lite3_get_key_data</c></remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [Lite3Api(IsTryPattern = false)]
-    public static KeyData GetKeyData(ReadOnlySpan<byte> key)
+    public static KeyData GetKeyData(scoped ReadOnlySpan<byte> key)
     {
         var hash = 5381u;
-        foreach (var b in key)
-            hash = (hash << 5) + hash + b;
+        for (var i = 0; i < key.Length; i++)
+            hash = (hash << 5) + hash + key[i];
 
         return new KeyData
         {
@@ -483,7 +483,7 @@ public static unsafe partial class Lite3Core
     /// </remarks>
     [Lite3Api(KeyDataArg = nameof(keyData))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Status SetString(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> key, in KeyData keyData, ReadOnlySpan<byte> value)
+    public static Status SetString(Span<byte> buffer, ref int position, int offset, scoped ReadOnlySpan<byte> key, scoped KeyData keyData, ReadOnlySpan<byte> value)
     {
         Status status;
         
@@ -749,7 +749,7 @@ public static unsafe partial class Lite3Core
     /// </remarks>
     [Lite3Api]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Status ArrayAppendString(Span<byte> buffer, ref int position, int offset, ReadOnlySpan<byte> value)
+    public static Status ArrayAppendString(Span<byte> buffer, ref int position, int offset, scoped ReadOnlySpan<byte> value)
     {
         Status status;
         

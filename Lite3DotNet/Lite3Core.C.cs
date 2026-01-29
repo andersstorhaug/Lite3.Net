@@ -35,6 +35,10 @@ public static unsafe partial class Lite3Core
     private static partial void LogInsertHash(this ILogger logger, int iteration, uint hash);
     #endregion
     
+    private const int NodeHashesLength = 7;
+    private const int NodeKeyValueOffsetsLength = 7;
+    private const int NodeChildOffsetsLength = 8;
+    
     [StructLayout(LayoutKind.Sequential)]
     private struct Node
     {
@@ -44,12 +48,7 @@ public static unsafe partial class Lite3Core
         public fixed uint KvOffsets[NodeKeyValueOffsetsLength];
         public fixed uint ChildOffsets[NodeChildOffsetsLength];
     }
-    
-    private const int
-        NodeHashesLength = 7,
-        NodeKeyValueOffsetsLength = 7,
-        NodeChildOffsetsLength = 8;
-    
+
     private const byte NodeTypeMask = (1 << 8) - 1;
 
     private const int NodeGenShift = 8;

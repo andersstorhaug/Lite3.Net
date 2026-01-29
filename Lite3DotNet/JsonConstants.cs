@@ -1,4 +1,4 @@
-namespace Lite3DotNet.SystemTextJson;
+namespace Lite3DotNet;
 
 internal static class JsonConstants
 {

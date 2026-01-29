@@ -3,7 +3,7 @@ using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
 
-namespace Lite3DotNet.SystemTextJson;
+namespace Lite3DotNet;
 
 public static class Lite3JsonEncoder
 {
