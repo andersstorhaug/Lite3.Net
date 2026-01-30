@@ -1,8 +1,4 @@
 <Solution>
-  <Folder Name="/Solution Items/">
-    <File Path="LICENSE" />
-    <File Path="README.md" />
-  </Folder>
   <Project Path="Lite3DotNet.Generators\Lite3DotNet.Generators.csproj" />
   <Project Path="Lite3DotNet.Tests\Lite3DotNet.Tests.csproj" />
   <Project Path="Lite3DotNet\Lite3DotNet.csproj" />
