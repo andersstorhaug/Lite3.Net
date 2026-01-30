@@ -5,6 +5,8 @@ namespace Lite3DotNet;
 
 public sealed partial class Lite3Context : IDisposable
 {
+    // Note that all public-facing Lite3 APIs and documentation comments are generated from the core implementation methods.
+    
     /// <summary>
     ///     <para>Create a context, optionally with a custom size.</para>
     ///     <para>

@@ -3,11 +3,17 @@ using System.Runtime.CompilerServices;
 
 namespace Lite3DotNet;
 
+/// <summary>
+///     Shared logic for resizing a Lite3 buffer, which may be used for the Context API, or for JSON decode.
+/// </summary>
 internal static class Lite3Buffer
 {
     public const int MaxBufferSize = int.MaxValue;
     public const int MinBufferSize = 1024;
     
+    /// <summary>
+    ///     Swap to a larger pooled buffer, and if the original buffer was pooled, return it.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Lite3Core.Status Grow(
         ArrayPool<byte> arrayPool,

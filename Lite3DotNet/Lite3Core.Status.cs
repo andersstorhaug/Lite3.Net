@@ -1,5 +1,11 @@
 namespace Lite3DotNet;
 
+/*
+ * Even though statuses _may_ be exposed to callers, they are largely an implementation detail.
+ *
+ * Use of statuses are necessary for exceptionless use; also this is similar to the C implementation.
+ */
+
 public static partial class Lite3Core
 {
     public enum Status

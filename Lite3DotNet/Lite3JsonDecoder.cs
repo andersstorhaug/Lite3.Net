@@ -265,7 +265,28 @@ public static class Lite3JsonDecoder
 
         return (buffer, position);
     }
-    
+
+    /// <summary>
+    ///     <para>
+    ///         The core decode implementation, which is designed to support:
+    ///         <list type="bullet">
+    ///             <item>
+    ///                 Synchronous use with stackalloc buffers <em>or</em> asynchronous use which may require use of pooled
+    ///                 buffers. Needs to yield upon underflow, and subsequently resume.
+    ///             </item>
+    ///             <item>
+    ///                 Lite3 buffers that are fixed <em>or</em> resizable. Needs to resize the Lite3 buffer without advancing
+    ///                 the JSON reader.
+    ///             </item>
+    ///         </list>
+    ///     </para>
+    ///     <para>Based on the C recursive implementation, however, stack-based primarily to support yield and resume.</para>
+    ///     <para>
+    ///         Lite3 operations require both the key and the value. In general, keys and string values are read and copied in
+    ///         the most efficient way possible. Underflow may also happen between reading the key and the value, in which
+    ///         case, the pending key must copied into an owned buffer before yield.
+    ///     </para>
+    /// </summary>
     private static Lite3Core.Status DecodeCore(
         ArrayPool<byte> arrayPool,
         ref DecodeState state,
@@ -287,19 +308,21 @@ public static class Lite3JsonDecoder
             }
         }
 
+        // Replay the current JSON token upon Lite3 buffer resize
         var replayToken = false;
 
         do
         {
             Process(ref stack, ref reader, ref state, ref buffer, ref position);
             
+            // Yield back to the caller upon error. This may be resumable due to underflow.
             if (status < 0)
                 return status;
         } while (!stack.IsEmpty());
 
         return 0;
 
-        // Local function for use of `stackalloc`
+        // Local function for the loop to allow for `stackalloc`.
         void Process(
             ref FrameStack stack,
             ref Utf8JsonReader reader,
@@ -342,6 +365,7 @@ public static class Lite3JsonDecoder
                         throw;
                     }
 
+                    // Ensure that buffers are returned upon success.
                     if (status >= 0)
                     {
                         if (rentedBuffer != null)
@@ -358,8 +382,11 @@ public static class Lite3JsonDecoder
                         break;
                     }
 
+                    // Upon underflow, store the pending key bytes in an owned buffer.
+                    // For synchronous use this is unnecessary, as an exception will result; but that distinction is not made here.
                     if (status == Lite3Core.Status.NeedsMoreData && state.PendingKey == null)
                     {
+                        // Keep the key as-is if it has already been pooled.
                         if (rentedBuffer != null)
                         {
                             state.PendingKey = rentedBuffer;
@@ -387,9 +414,11 @@ public static class Lite3JsonDecoder
 
             replayToken = false;
 
+            // If the buffer is not resizable, let the caller handle the exceptional path.
             if (status != Lite3Core.Status.InsufficientBuffer || !growBuffer) 
                 return;
             
+            // Resize the buffer and replay.
             status = Lite3Buffer.Grow(arrayPool, isRentedBuffer, buffer, out buffer);
             isRentedBuffer = true;
             replayToken = true;
@@ -540,7 +569,7 @@ public static class Lite3JsonDecoder
 
         return status >= 0 ? stack.Pop() : status;
     }
-    
+        
     private static Lite3Core.Status DecodeArray(ref FrameStack stack, bool replayToken, ref Utf8JsonReader reader)
     {
         if (reader.CurrentDepth > JsonConstants.NestingDepthMax)
@@ -705,6 +734,10 @@ public static class Lite3JsonDecoder
         }
     }
 
+    /// <summary>
+    ///     <para>Determine the best method to read a string from the JSON reader, in terms of memory use and performance.</para>
+    ///     <para>Factored out so that callers can <c>stackalloc</c> when appropriate.</para>
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ReadMethod GetStringReadMethod(ref Utf8JsonReader reader, out int bufferLength)
     {

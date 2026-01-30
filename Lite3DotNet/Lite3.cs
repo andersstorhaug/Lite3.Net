@@ -2,6 +2,8 @@ namespace Lite3DotNet;
 
 public static partial class Lite3
 {
+    // Note that all public-facing Lite3 APIs and documentation comments are generated from the core implementation methods.
+    
     /// <summary>
     ///     <para>Enumerate entries for objects or arrays.</para>
     ///     <para>
