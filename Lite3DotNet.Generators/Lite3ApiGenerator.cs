@@ -2,14 +2,13 @@ using System.Text;
 using Lite3DotNet.Generators.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using static Lite3DotNet.Generators.Lite3ApiGenerator.AttributeProperty;
 
 namespace Lite3DotNet.Generators;
 
 [Generator]
 public class Lite3ApiGenerator : IIncrementalGenerator
 {
-    public static class AttributeProperty
+    private static class AttributePropertyName
     {
         public const string
             IsTryPattern = nameof(IsTryPattern),
@@ -33,9 +32,9 @@ public class Lite3ApiGenerator : IIncrementalGenerator
              [System.AttributeUsage(System.AttributeTargets.Method)]
              internal sealed class {{AttributeName}} : System.Attribute
              {
-                 public bool {{IsTryPattern}} { get; init; }
-                 public string {{KeyDataArg}} { get; init; }
-                 public string {{ReturnArg}} { get; init; }
+                 public bool {{AttributePropertyName.IsTryPattern}} { get; init; }
+                 public string {{AttributePropertyName.KeyDataArg}} { get; init; }
+                 public string {{AttributePropertyName.ReturnArg}} { get; init; }
              }
              """;
     
@@ -99,13 +98,13 @@ public class Lite3ApiGenerator : IIncrementalGenerator
                     {
                         switch (entry.Key)
                         {
-                            case nameof(IsTryPattern):
+                            case nameof(AttributePropertyName.IsTryPattern):
                                 tryPattern = entry.Value.Value as bool? ?? true;
                                 break;
-                            case nameof(KeyDataArg):
+                            case nameof(AttributePropertyName.KeyDataArg):
                                 keyDataArg = entry.Value.Value as string;
                                 break;
-                            case nameof(ReturnArg):
+                            case nameof(AttributePropertyName.ReturnArg):
                                 returnArg = entry.Value.Value as string;
                                 break;
                         }
