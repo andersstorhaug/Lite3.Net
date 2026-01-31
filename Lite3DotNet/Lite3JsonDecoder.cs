@@ -153,12 +153,14 @@ public static class Lite3JsonDecoder
         }
         catch
         {
-            if (decodeState.PendingKey is { } pendingKey)
-                arrayPool.Return(pendingKey);
-            
             if (isRentedBuffer)
                 arrayPool.Return(buffer);
             throw;
+        }
+        finally
+        {
+            if (decodeState.PendingKey is { } pendingKey)
+                arrayPool.Return(pendingKey);
         }
 
         return (buffer, position);
