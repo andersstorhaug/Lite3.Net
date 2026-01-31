@@ -421,7 +421,9 @@ public static class Lite3JsonDecoder
                 return;
             
             // Resize the buffer and replay.
-            status = Lite3Buffer.Grow(arrayPool, isRentedBuffer, buffer, out buffer);
+            if ((status = Lite3Buffer.Grow(arrayPool, isRentedBuffer, buffer, out buffer)) < 0)
+                return;
+            
             isRentedBuffer = true;
             replayToken = true;
         }
@@ -802,7 +804,7 @@ public static class Lite3JsonDecoder
         
         public Lite3Core.Status Push(in Frame frame)
         {
-            Debug.Assert(_index >= _frames.Length - 1);
+            Debug.Assert(_index + 1 < _frames.Length);
             _frames[++_index] = frame;
             return 0;
         }
