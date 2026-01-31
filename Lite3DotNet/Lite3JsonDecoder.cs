@@ -305,12 +305,12 @@ public static class Lite3JsonDecoder
         {
             if ((status = DecodeDocument(ref stack, buffer, ref position, ref reader)) < 0)
             {
-                // Note: resize and/or underflow should never happen on the first token
+                // Note: resize and/or underflow should never happen on the first token.
                 throw status.AsException();
             }
         }
 
-        // Replay the current JSON token upon Lite3 buffer resize
+        // Used to replay the current JSON token upon Lite3 buffer resize.
         var replayToken = false;
 
         do
@@ -704,7 +704,7 @@ public static class Lite3JsonDecoder
         ArrayPool<byte> arrayPool,
         out byte[] buffer)
     {
-        Debug.Assert(method is > ReadMethod.PooledMarker);
+        Debug.Assert(method > ReadMethod.PooledMarker);
         
         buffer = arrayPool.Rent(bufferLength);
         
@@ -788,6 +788,9 @@ public static class Lite3JsonDecoder
         public int PendingKeyLength;
     }
 
+    /// <remarks>
+    ///     Fixed-sized. Allows the caller to either <c>stackalloc</c> or rent frames.
+    /// </remarks>
     private ref struct FrameStack(Span<Frame> frames, int index = -1)
     {
         private readonly Span<Frame> _frames = frames;
