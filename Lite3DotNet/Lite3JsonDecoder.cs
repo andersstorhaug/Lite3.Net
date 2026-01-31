@@ -713,9 +713,6 @@ public static class Lite3JsonDecoder
         {
             switch (method)
             {
-                case ReadMethod.PooledFromSpan:
-                    reader.ValueSpan.CopyTo(buffer);
-                    break;
                 case ReadMethod.PooledFromSequence:
                     reader.ValueSequence.CopyTo(buffer);
                     break;
@@ -755,14 +752,9 @@ public static class Lite3JsonDecoder
             : reader.ValueSpan.Length;
         
         if (bufferLength <= StackallocStringLength)
-        {
             return isEscaped ? ReadMethod.StackallocFromCopyString : ReadMethod.StackallocFromSequence;
-        }
 
-        if (!isEscaped)
-            return hasSequence ? ReadMethod.PooledFromSequence : ReadMethod.PooledFromSpan;
-
-        return ReadMethod.PooledFromCopyString;
+        return isEscaped ? ReadMethod.PooledFromCopyString : ReadMethod.PooledFromSequence;
     }
 
     private enum ReadMethod
@@ -774,7 +766,6 @@ public static class Lite3JsonDecoder
         StackallocFromCopyString,
         
         PooledMarker,
-        PooledFromSpan,
         PooledFromSequence,
         PooledFromCopyString
     }
