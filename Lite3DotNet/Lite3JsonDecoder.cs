@@ -685,16 +685,13 @@ public static class Lite3JsonDecoder
         
         switch (method)
         {
-            case ReadMethod.StackallocFromSpan:
-                reader.ValueSpan.CopyTo(buffer);
-                return bufferLength;
             case ReadMethod.StackallocFromSequence:
                 reader.ValueSequence.CopyTo(buffer);
                 return bufferLength;
             case ReadMethod.StackallocFromCopyString:
                 return reader.CopyString(buffer);
             default:
-                throw new InvalidOperationException("Invalid string read method.");
+                throw new InvalidOperationException("Unexpected string read method.");
         }
     }
 
@@ -726,7 +723,7 @@ public static class Lite3JsonDecoder
                     length = reader.CopyString(buffer);
                     break;
                 default:
-                    throw new InvalidOperationException("Invalid string read method.");
+                    throw new InvalidOperationException("Unexpected string read method.");
             }
 
             return buffer.AsSpan(0, length);
@@ -773,7 +770,6 @@ public static class Lite3JsonDecoder
         FromSpan = 1,
         
         StackallocMarker,
-        StackallocFromSpan,
         StackallocFromSequence,
         StackallocFromCopyString,
         
