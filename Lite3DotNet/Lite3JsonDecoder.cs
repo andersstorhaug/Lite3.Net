@@ -759,8 +759,7 @@ public static class Lite3JsonDecoder
         
         if (bufferLength <= StackallocStringLength)
         {
-            if (isEscaped) return ReadMethod.StackallocFromCopyString;
-            return hasSequence ? ReadMethod.StackallocFromSequence : ReadMethod.StackallocFromSpan;
+            return isEscaped ? ReadMethod.StackallocFromCopyString : ReadMethod.StackallocFromSequence;
         }
 
         if (!isEscaped)
