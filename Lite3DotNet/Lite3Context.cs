@@ -109,8 +109,9 @@ public sealed partial class Lite3Context : IDisposable
     
     public void Dispose()
     {
+        // Dual-purposed as a guard against default; however, non-rented is also valid.
         if (_isRentedBuffer)
-            ArrayPool<byte>.Shared.Return(Buffer);
+            _arrayPool.Return(Buffer);
     }
 
     private Lite3Core.Status Grow()

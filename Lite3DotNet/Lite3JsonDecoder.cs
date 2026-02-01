@@ -817,13 +817,18 @@ public static class Lite3JsonDecoder
         public readonly int Offset = offset; 
     }
 
-    public readonly struct DecodeResult(byte[] buffer, int position, ArrayPool<byte> arrayPool)
+    public readonly struct DecodeResult(byte[] buffer, int position, ArrayPool<byte> arrayPool, bool isRentedBuffer = true)
         : IDisposable
     {
         public readonly byte[] Buffer = buffer;
         public readonly int Position = position;
         public readonly ArrayPool<byte> ArrayPool = arrayPool;
 
-        public void Dispose() => ArrayPool.Return(Buffer);
+        public void Dispose()
+        {
+            // Dual-purposed as a guard against default; otherwise currently always rented.
+            if (isRentedBuffer)
+                ArrayPool.Return(Buffer);
+        }
     }
 }
